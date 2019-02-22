@@ -1,10 +1,10 @@
-package client;
+package connection;
 
-public class ClientId<T> {
+public class Id<T> {
 
     T id;
 
-    public ClientId(T id){
+    public Id(T id){
         this.id = id;
     }
 

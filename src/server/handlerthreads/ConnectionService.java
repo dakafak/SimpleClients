@@ -1,10 +1,9 @@
 package server.handlerthreads;
 
-import client.Client;
-import client.ClientId;
-import client.ClientValidator;
+import connection.Connection;
+import connection.Id;
+import connection.ClientValidator;
 import server.data.Payload;
-import server.data.PayloadValidator;
 import server.data.payloads.ConnectionPayload;
 
 import java.io.IOException;
@@ -21,26 +20,23 @@ public class ConnectionService implements Runnable {
 
     private ServerSocket serverSocket;
 
-    private LinkedList<Client> clientsToValidate;
-    private ConcurrentHashMap<ClientId, Client> allClientsReference;
-    private ClientValidator clientValidator;
+//    private LinkedList<Connection> clientsToValidate;
+    private ConcurrentHashMap<Id, Connection> allClientsReference;
+//    private ClientValidator clientValidator;
     private Payload connectionSuccessPayload;
-    private PayloadValidator<ConnectionPayload> connectionPayloadValidator;
 
     public ConnectionService(int numberOfThreads,
                              int port,
-                             ConcurrentHashMap<ClientId, Client> allClientsReference,
+                             ConcurrentHashMap<Id, Connection> allClientsReference,
                              ClientValidator clientValidator,
-                             Payload connectionSuccessPayload,
-                             PayloadValidator<ConnectionPayload> connectionPayloadValidator){
+                             Payload connectionSuccessPayload){
         this.numberOfThreads = numberOfThreads;
         this.port = port;
         this.allClientsReference = allClientsReference;
-        this.clientValidator = clientValidator;
+//        this.clientValidator = clientValidator;
         this.connectionSuccessPayload = connectionSuccessPayload;
-        this.connectionPayloadValidator = connectionPayloadValidator;
 
-        clientsToValidate = new LinkedList<>();
+//        clientsToValidate = new LinkedList<>();
     }
 
     @Override
@@ -50,9 +46,18 @@ public class ConnectionService implements Runnable {
 
             while(continueRunning){
                 Socket newClientSocket = serverSocket.accept();
-                Client newClientConnection = new Client(newClientSocket);
-                if(clientValidator.isValid(newClientConnection)) {
-                    clientsToValidate.add(newClientConnection);
+                System.out.println("Accepted a new client");
+                Connection newClientConnection = new Connection(newClientSocket);
+                //TODO client validation shouldn't happen here, it should be done in the queue below
+                //      in the connection payload test -- remove client validator
+                System.out.println("Created new connection object for new client");
+//                clientsToValidate.add(newClientConnection);
+                newClientConnection.sendData(connectionSuccessPayload);
+                ConnectionPayload connectionPayload = (ConnectionPayload) newClientConnection.retrieveData();
+
+                if(connectionPayload != null && connectionPayload.isValid()) {
+                    newClientConnection.setId(connectionPayload.getId());
+                    allClientsReference.put(newClientConnection.getId(), newClientConnection);
                 }
             }
         } catch (IOException e) {
@@ -60,19 +65,19 @@ public class ConnectionService implements Runnable {
         }
     }
 
-    public void validateNewClientsAndAddToAllClients(){
-        for(Client client : clientsToValidate){
-            client.sendData(connectionSuccessPayload);
-            ConnectionPayload connectionPayload = (ConnectionPayload) client.retrieveData();
-
-            if(connectionPayload != null && connectionPayloadValidator.isValid(connectionPayload)) {
-                client.setId(connectionPayload.getClientId());
-                allClientsReference.put(client.getId(), client);
-            }
-
-            clientsToValidate.remove(client);
-        }
-    }
+//    public void validateNewClientsAndAddToAllClients(){
+//        for(Connection connection : clientsToValidate){
+//            connection.sendData(connectionSuccessPayload);
+//            ConnectionPayload connectionPayload = (ConnectionPayload) connection.retrieveData();
+//
+//            if(connectionPayload != null && connectionPayload.isValid()) {
+//                connection.setId(connectionPayload.getId());
+//                allClientsReference.put(connection.getId(), connection);
+//            }
+//
+//            clientsToValidate.remove(connection);
+//        }
+//    }
 
     public boolean isContinueRunning() {
         return continueRunning;

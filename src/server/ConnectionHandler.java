@@ -1,13 +1,14 @@
 package server;
 
-import client.Client;
-import client.ClientId;
-import client.ClientValidator;
+import connection.Connection;
+import connection.Id;
+import connection.ClientValidator;
 import server.data.Payload;
+import server.data.PayloadValidator;
+import server.data.payloads.ConnectionPayload;
 import server.handlerthreads.ConnectionService;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.SynchronousQueue;
 
 public class ConnectionHandler {
 
@@ -16,8 +17,8 @@ public class ConnectionHandler {
     //TODO change this to a synchronized linked list and pass as parameter into connection service
     //      ConnectionHandler -> ConnectionService
     //      ConnectionHandler -> DataTransferService
-//    private SynchronousQueue<Client> allClients;//TODO this should be changed to a synchronous list or hashmap
-    private ConcurrentHashMap<ClientId, Client> clients;
+//    private SynchronousQueue<Connection> allClients;//TODO this should be changed to a synchronous list or hashmap
+    private ConcurrentHashMap<Id, Connection> clients;
     private ClientValidator clientValidator;
     private int numberOfThreads;
     private int port;
@@ -30,11 +31,12 @@ public class ConnectionHandler {
         clients = new ConcurrentHashMap<>();
     }
 
-    public void startListeningForConnections(){
-        connectionService = new ConnectionService(numberOfThreads, port, clients, clientValidator);
+    public void startListeningForConnections(Payload connectionSuccessPayload){
+        connectionService = new ConnectionService(numberOfThreads, port, clients, clientValidator, connectionSuccessPayload);
         connectionService.setContinueRunning(true);
-        Thread connectionThread = new Thread(connectionService);
-        connectionThread.start();
+//        Thread connectionThread = new Thread(connectionService);
+//        connectionThread.start();
+        connectionService.run();
     }
 
     public void stopListeningForConnections(){
@@ -43,17 +45,18 @@ public class ConnectionHandler {
 
     public void updateAllClientsWithPayload(Payload payload){
         if(payload.isValid()) {
-            for (Client client : clients.values()) {//TODO this won't be thread safe -- update this
-                if(!client.clientShouldBeDestroyed()) {
-                    client.sendData(payload);
+            for (Connection connection : clients.values()) {//TODO this won't be thread safe -- update this
+                if(!connection.clientShouldBeDestroyed()) {
+
+                    connection.sendData(payload);
                 }
             }
         }
     }
 
-    public void updateClientWithPayload(Client client, Payload payload){
-        if(payload.isValid() && !client.clientShouldBeDestroyed()){
-            client.sendData(payload);
+    public void updateClientWithPayload(Connection connection, Payload payload){
+        if(payload.isValid() && !connection.clientShouldBeDestroyed()){
+            connection.sendData(payload);
         }
     }
 

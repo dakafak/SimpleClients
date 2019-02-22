@@ -1,6 +1,8 @@
 package server.data;
 
-public class Payload<T> {
+import java.io.Serializable;
+
+public class Payload<T> implements Serializable {
 
     T data;
     PayloadValidator<T> payloadValidator;

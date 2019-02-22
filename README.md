@@ -1,2 +1,2 @@
 # SimpleClients
-Server repository for ConnectionHandler, handles client connections
+Server repository for ConnectionHandler, handles connection connections
