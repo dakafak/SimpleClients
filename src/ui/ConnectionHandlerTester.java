@@ -11,8 +11,7 @@ public class ConnectionHandlerTester {
 
     public static void main(String[] args){
         System.out.println("-- Creating connection handlers");
-        TestClientValidator testClientValidator = new TestClientValidator();
-        ConnectionHandler connectionHandler = new ConnectionHandler(5, 1776, testClientValidator);
+        ConnectionHandler connectionHandler = new ConnectionHandler(5, 1776);
 
         System.out.println("-- Creating payload validator and connection success payload");
         PayloadValidator payloadValidator = new TestPayloadValidator();
@@ -23,10 +22,6 @@ public class ConnectionHandlerTester {
 //        jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 //        jFrame.setPreferredSize(new Dimension(400, 200));
 //        jFrame.setVisible(true);
-
-        while(true){
-            System.out.print("...");
-        }
     }
 
 }

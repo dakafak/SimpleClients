@@ -17,22 +17,6 @@ public class Connection {
 
     public Connection(Socket connection){
         this.connection = connection;
-//
-//        try {
-//            System.out.println("Setting up output stream");
-//            this.outputStream = new ObjectOutputStream(connection.getOutputStream());
-//        } catch (IOException e) {
-//            clientShouldBeDestroyed = true;
-//            e.printStackTrace();
-//        }
-//
-//        try {
-//            System.out.println("Setting up input stream");
-//            this.inputStream = new ObjectInputStream(connection.getInputStream());
-//        } catch (IOException e) {
-//            clientShouldBeDestroyed = true;
-//            e.printStackTrace();
-//        }
     }
 
     public void sendData(Payload payload){
