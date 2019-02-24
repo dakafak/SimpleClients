@@ -54,10 +54,6 @@ public class ConnectionService implements Runnable {
         }
     }
 
-    public boolean isContinueRunning() {
-        return continueRunning;
-    }
-
     public void setContinueRunning(boolean continueRunning) {
         this.continueRunning = continueRunning;
     }

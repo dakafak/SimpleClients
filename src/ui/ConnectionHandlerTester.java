@@ -4,9 +4,6 @@ import server.ConnectionHandler;
 import server.data.Payload;
 import server.data.PayloadValidator;
 
-import javax.swing.*;
-import java.awt.*;
-
 public class ConnectionHandlerTester {
 
     public static void main(String[] args){
@@ -17,6 +14,19 @@ public class ConnectionHandlerTester {
         PayloadValidator payloadValidator = new TestPayloadValidator();
         Payload<String> connectionSuccessPayload = new Payload<>("Connection Successful", payloadValidator);
         connectionHandler.startListeningForConnections(connectionSuccessPayload);
+        connectionHandler.startRecievingDataFromClients();
+        connectionHandler.startSendingDataToClients();
+
+//        while(true){
+//            ConcurrentHashMap<Id, Connection> allClients = connectionHandler.getClients();
+//            if(allClients != null && !allClients.isEmpty()){
+//                for(Connection connection : allClients.values()){
+//
+//                }
+//            }
+//        }
+
+
 //
 //        JFrame jFrame = new JFrame("");
 //        jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

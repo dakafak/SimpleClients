@@ -7,15 +7,15 @@ import server.data.Payload;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class DataTransferService implements Runnable {
+public class DataReceiveService implements Runnable {
 
     private ConcurrentHashMap<Id, Connection> clients;
-    private ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> outputPayloadQueuePerConnectionId;
+    private ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> inputPayloadQueuePerConnectionId;
     private boolean continueRunning;
 
-    public DataTransferService(ConcurrentHashMap<Id, Connection> clients, ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> outputPayloadQueuePerConnectionId) {
+    public DataReceiveService(ConcurrentHashMap<Id, Connection> clients, ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> inputPayloadQueuePerConnectionId) {
         this.clients = clients;
-        this.outputPayloadQueuePerConnectionId = outputPayloadQueuePerConnectionId;
+        this.inputPayloadQueuePerConnectionId = inputPayloadQueuePerConnectionId;
     }
 
     @Override
