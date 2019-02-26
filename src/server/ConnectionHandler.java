@@ -86,7 +86,16 @@ public class ConnectionHandler {
         }
     }
 
-    public void updateClientWithPayload(Connection connection, Payload payload){
+    public void sendPayloadListToClient(Connection connection, ConcurrentLinkedQueue<Payload> payloads){
+        if(!outputPayloadQueuePerConnectionId.containsKey(connection.getId())){
+            ConcurrentLinkedQueue<Payload> concurrentLinkedQueue = new ConcurrentLinkedQueue<>();
+            outputPayloadQueuePerConnectionId.put(connection.getId(), concurrentLinkedQueue);
+        }
+
+        outputPayloadQueuePerConnectionId.get(connection.getId()).addAll(payloads);
+    }
+
+    public void sendPayloadToClient(Connection connection, Payload payload){
         if(payload.isValid() && !connection.clientShouldBeDestroyed()){
             connection.sendData(payload);
         }
@@ -96,8 +105,24 @@ public class ConnectionHandler {
         return clients;
     }
 
+    public Connection getClient(Id id){
+        if(id != null && clients.containsKey(id)) {
+            return clients.get(id);
+        }
+
+        return null;
+    }
+
     public void setClients(ConcurrentHashMap<Id, Connection> clients) {
         this.clients = clients;
+    }
+
+    public ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> getInputPayloadQueuePerConnectionId() {
+        return inputPayloadQueuePerConnectionId;
+    }
+
+    public ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> getOutputPayloadQueuePerConnectionId() {
+        return outputPayloadQueuePerConnectionId;
     }
 
 }

@@ -1,6 +1,12 @@
 package ui;
 
+import connection.Connection;
+import connection.Id;
 import server.ConnectionHandler;
+import server.data.Payload;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ConnectionHandlerTester {
 
@@ -12,6 +18,17 @@ public class ConnectionHandlerTester {
         connectionHandler.startListeningForConnections();
         connectionHandler.startValidatingClients();
         connectionHandler.startSendingDataToClients();
+
+        while(true) {
+            ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> inputPayloadQueuePerConnectionId = connectionHandler.getInputPayloadQueuePerConnectionId();
+
+            for(Id id : inputPayloadQueuePerConnectionId.keySet()){
+                Connection client = connectionHandler.getClient(id);
+                if(client != null) {
+                    connectionHandler.sendPayloadListToClient(client, inputPayloadQueuePerConnectionId.get(id));
+                }
+            }
+        }
 
 //        while(true){
 //            ConcurrentHashMap<Id, Connection> allClients = connectionHandler.getClients();
