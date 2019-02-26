@@ -34,6 +34,7 @@ public class ConnectionValidatorService implements Runnable {
                 Connection newClientConnection = clientsToValidate.poll();
 
                 //TODO when correct validation is added, wrap these with a validation check
+                newClientConnection.setId(new Id((long)Math.random()*100));
                 clients.put(newClientConnection.getId(), newClientConnection);
                 ConcurrentLinkedQueue<Payload> concurrentLinkedQueue = new ConcurrentLinkedQueue<>();
                 inputPayloadQueuePerConnectionId.put(newClientConnection.getId(), concurrentLinkedQueue);

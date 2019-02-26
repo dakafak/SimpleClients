@@ -16,4 +16,9 @@ public class Payload<T> implements Serializable {
         return payloadValidator != null && payloadValidator.isValid(data);
     }
 
+    @Override
+    public String toString(){
+        return data.toString();
+    }
+
 }

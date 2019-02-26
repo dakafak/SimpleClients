@@ -8,7 +8,6 @@ import server.data.payloads.ConnectionPayload;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ConnectionService implements Runnable {
@@ -38,12 +37,7 @@ public class ConnectionService implements Runnable {
                 Socket newClientSocket = serverSocket.accept();
                 System.out.println("Accepted a new client");
                 Connection newClientConnection = new Connection(newClientSocket);
-                System.out.println("Created new connection object for new client");
-                ConnectionPayload connectionPayload = (ConnectionPayload) newClientConnection.retrieveData();
-
-                if(connectionPayload != null && connectionPayload.isValid()) {
-                    clientsToValidate.add(newClientConnection);
-                }
+                clientsToValidate.add(newClientConnection);
             }
         } catch (IOException e) {
             e.printStackTrace();

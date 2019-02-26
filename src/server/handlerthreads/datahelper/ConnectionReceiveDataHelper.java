@@ -20,6 +20,7 @@ public class ConnectionReceiveDataHelper implements Runnable {
     public void run() {
         while(continueRunning){
             Payload newPayload = connection.retrieveData();
+            System.out.println("Read data from connection: " + connection.getId() + " | data: \"" + newPayload + "\"");
             receivedMessageQueue.add(newPayload);
         }
     }
