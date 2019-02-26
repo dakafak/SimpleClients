@@ -4,8 +4,9 @@ import connection.Connection;
 import connection.Id;
 import server.data.Payload;
 import server.handlerthreads.ConnectionService;
-import server.handlerthreads.DataReceiveService;
+import server.handlerthreads.ConnectionValidatorService;
 import server.handlerthreads.DataTransferService;
+import server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -13,12 +14,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class ConnectionHandler {
 
     private ConnectionService connectionService;
-    private DataReceiveService dataReceiveService;
+    private ConnectionValidatorService connectionValidatorService;
     private DataTransferService dataTransferService;
 
     private ConcurrentHashMap<Id, Connection> clients;
+    private ConcurrentLinkedQueue<Connection> clientsToValidate;
     private ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> inputPayloadQueuePerConnectionId;
     private ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> outputPayloadQueuePerConnectionId;
+    private ConcurrentHashMap<Id, ConnectionReceiveDataHelper> connectionReceiveDataHelpers;
     private int numberOfThreads;
     private int port;
 
@@ -27,25 +30,25 @@ public class ConnectionHandler {
         this.port = port;
 
         clients = new ConcurrentHashMap<>();
+        clientsToValidate = new ConcurrentLinkedQueue<>();
         inputPayloadQueuePerConnectionId = new ConcurrentHashMap<>();
         outputPayloadQueuePerConnectionId = new ConcurrentHashMap<>();
+        connectionReceiveDataHelpers = new ConcurrentHashMap<>();
     }
 
     //TODO consider updating all start methods with threads to use a ExecutorService and the numberOfThreads value above
-    public void startListeningForConnections(Payload connectionSuccessPayload){
-        connectionService = new ConnectionService(numberOfThreads, port, clients, connectionSuccessPayload);
+    public void startListeningForConnections(){
+        connectionService = new ConnectionService(numberOfThreads, port, clientsToValidate);
         connectionService.setContinueRunning(true);
         Thread connectionThread = new Thread(connectionService);
         connectionThread.start();
-//        connectionService.run();
     }
 
-    //TODO consider updating all start methods with threads to use a ExecutorService and the numberOfThreads value above
-    public void startRecievingDataFromClients(){
-        dataReceiveService = new DataReceiveService(clients, inputPayloadQueuePerConnectionId);
-        dataReceiveService.setContinueRunning(true);
-        Thread dataReceiveServiceThread = new Thread(dataReceiveService);
-        dataReceiveServiceThread.start();
+    public void startValidatingClients(){
+        connectionValidatorService = new ConnectionValidatorService(clients, clientsToValidate, connectionReceiveDataHelpers, inputPayloadQueuePerConnectionId);
+        connectionValidatorService.setContinueRunning(true);
+        Thread connectionValidatorThread = new Thread(connectionValidatorService);
+        connectionValidatorThread.start();
     }
 
     //TODO consider updating all start methods with threads to use a ExecutorService and the numberOfThreads value above

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ConnectionService implements Runnable {
 
@@ -18,17 +19,14 @@ public class ConnectionService implements Runnable {
 
     private ServerSocket serverSocket;
 
-    private ConcurrentHashMap<Id, Connection> allClientsReference;
-    private Payload connectionSuccessPayload;
+    private ConcurrentLinkedQueue<Connection> clientsToValidate;
 
     public ConnectionService(int numberOfThreads,
                              int port,
-                             ConcurrentHashMap<Id, Connection> allClientsReference,
-                             Payload connectionSuccessPayload){
+                             ConcurrentLinkedQueue<Connection> clientsToValidate){
         this.numberOfThreads = numberOfThreads;
         this.port = port;
-        this.allClientsReference = allClientsReference;
-        this.connectionSuccessPayload = connectionSuccessPayload;
+        this.clientsToValidate = clientsToValidate;
     }
 
     @Override
@@ -41,12 +39,10 @@ public class ConnectionService implements Runnable {
                 System.out.println("Accepted a new client");
                 Connection newClientConnection = new Connection(newClientSocket);
                 System.out.println("Created new connection object for new client");
-                newClientConnection.sendData(connectionSuccessPayload);
                 ConnectionPayload connectionPayload = (ConnectionPayload) newClientConnection.retrieveData();
 
                 if(connectionPayload != null && connectionPayload.isValid()) {
-                    newClientConnection.setId(connectionPayload.getId());
-                    allClientsReference.put(newClientConnection.getId(), newClientConnection);
+                    clientsToValidate.add(newClientConnection);
                 }
             }
         } catch (IOException e) {

@@ -1,8 +1,6 @@
 package ui;
 
 import server.ConnectionHandler;
-import server.data.Payload;
-import server.data.PayloadValidator;
 
 public class ConnectionHandlerTester {
 
@@ -11,10 +9,8 @@ public class ConnectionHandlerTester {
         ConnectionHandler connectionHandler = new ConnectionHandler(5, 1776);
 
         System.out.println("-- Creating payload validator and connection success payload");
-        PayloadValidator payloadValidator = new TestPayloadValidator();
-        Payload<String> connectionSuccessPayload = new Payload<>("Connection Successful", payloadValidator);
-        connectionHandler.startListeningForConnections(connectionSuccessPayload);
-        connectionHandler.startRecievingDataFromClients();
+        connectionHandler.startListeningForConnections();
+        connectionHandler.startValidatingClients();
         connectionHandler.startSendingDataToClients();
 
 //        while(true){

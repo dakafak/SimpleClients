@@ -13,7 +13,7 @@ public class Payload<T> implements Serializable {
     }
 
     public boolean isValid(){
-        return payloadValidator.isValid(data);
+        return payloadValidator != null && payloadValidator.isValid(data);
     }
 
 }
