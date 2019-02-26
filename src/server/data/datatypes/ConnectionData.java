@@ -2,13 +2,13 @@ package server.data.datatypes;
 
 public class ConnectionData<T> {
 
-    T data;
+	T data;
 
-    public T getData() {
-        return data;
-    }
+	public T getData() {
+		return data;
+	}
 
-    public void setData(T data) {
-        this.data = data;
-    }
+	public void setData(T data) {
+		this.data = data;
+	}
 }

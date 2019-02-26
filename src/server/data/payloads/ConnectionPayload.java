@@ -7,10 +7,10 @@ import server.data.datatypes.ConnectionData;
 
 public abstract class ConnectionPayload extends Payload<ConnectionData> {
 
-    public ConnectionPayload(ConnectionData data, PayloadValidator<ConnectionData> payloadValidator) {
-        super(data, payloadValidator);
-    }
+	public ConnectionPayload(ConnectionData data, PayloadValidator<ConnectionData> payloadValidator) {
+		super(data, payloadValidator);
+	}
 
-    public abstract Id getId();
+	public abstract Id getId();
 
 }
