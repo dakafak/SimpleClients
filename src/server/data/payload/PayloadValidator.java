@@ -1,4 +1,4 @@
-package server.data;
+package server.data.payload;
 
 import java.io.Serializable;
 

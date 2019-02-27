@@ -1,9 +1,6 @@
 package server.handlerthreads;
 
 import connection.Connection;
-import connection.Id;
-import server.data.Payload;
-import server.data.payloads.ConnectionPayload;
 
 import java.io.IOException;
 import java.net.ServerSocket;

@@ -1,7 +1,7 @@
 package server.handlerthreads.datahelper;
 
 import connection.Connection;
-import server.data.Payload;
+import server.data.payload.Payload;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 

@@ -1,6 +1,6 @@
 package server.data.validators;
 
-import server.data.PayloadValidator;
+import server.data.payload.PayloadValidator;
 
 public class TrueValidator extends PayloadValidator {
     @Override

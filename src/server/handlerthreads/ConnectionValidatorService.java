@@ -2,7 +2,7 @@ package server.handlerthreads;
 
 import connection.Connection;
 import connection.Id;
-import server.data.Payload;
+import server.data.payload.Payload;
 import server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
 
 import java.util.concurrent.ConcurrentHashMap;

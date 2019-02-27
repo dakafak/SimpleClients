@@ -1,6 +1,6 @@
 package connection;
 
-import server.data.Payload;
+import server.data.payload.Payload;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

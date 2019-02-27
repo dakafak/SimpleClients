@@ -1,7 +1,6 @@
-package ui;
+package testclasses;
 
-import server.data.Payload;
-import server.data.PayloadValidator;
+import server.data.payload.PayloadValidator;
 
 public class TestPayloadValidator extends PayloadValidator<String> {
 

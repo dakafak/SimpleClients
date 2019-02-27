@@ -2,7 +2,8 @@ package server;
 
 import connection.Connection;
 import connection.Id;
-import server.data.Payload;
+import server.data.payload.Payload;
+import server.data.task.Task;
 import server.handlerthreads.ConnectionService;
 import server.handlerthreads.ConnectionValidatorService;
 import server.handlerthreads.DataTransferService;
@@ -22,6 +23,7 @@ public class ConnectionHandler {
     private ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> inputPayloadQueuePerConnectionId;
     private ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> outputPayloadQueuePerConnectionId;
     private ConcurrentHashMap<Id, ConnectionReceiveDataHelper> connectionReceiveDataHelpers;
+    private ConcurrentHashMap<Enum, Task> tasks;
     private int numberOfThreads;
     private int port;
 
@@ -34,6 +36,7 @@ public class ConnectionHandler {
         inputPayloadQueuePerConnectionId = new ConcurrentHashMap<>();
         outputPayloadQueuePerConnectionId = new ConcurrentHashMap<>();
         connectionReceiveDataHelpers = new ConcurrentHashMap<>();
+        tasks = new ConcurrentHashMap<>();
     }
 
     //TODO consider updating all start methods with threads to use a ExecutorService and the numberOfThreads value above
@@ -113,6 +116,10 @@ public class ConnectionHandler {
         return null;
     }
 
+    public void addTask(Enum taskType, Task task){
+        tasks.put(taskType, task);
+    }
+
     public void setClients(ConcurrentHashMap<Id, Connection> clients) {
         this.clients = clients;
     }
@@ -124,5 +131,4 @@ public class ConnectionHandler {
     public ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> getOutputPayloadQueuePerConnectionId() {
         return outputPayloadQueuePerConnectionId;
     }
-
 }

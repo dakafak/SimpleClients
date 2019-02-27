@@ -1,9 +1,9 @@
-package ui;
+package testclasses;
 
 import connection.Connection;
 import connection.Id;
 import server.ConnectionHandler;
-import server.data.Payload;
+import server.data.payload.Payload;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -13,6 +13,7 @@ public class ConnectionHandlerTester {
     public static void main(String[] args){
         System.out.println("-- Creating connection handlers");
         ConnectionHandler connectionHandler = new ConnectionHandler(5, 1776);
+        connectionHandler.addTask(MyPayloadTypes.PING, new PingTask());
 
         System.out.println("-- Creating payload validator and connection success payload");
         connectionHandler.startListeningForConnections();

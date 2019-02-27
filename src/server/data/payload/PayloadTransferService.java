@@ -1,4 +1,4 @@
-package server.data;
+package server.data.payload;
 
 public class PayloadTransferService {
 
