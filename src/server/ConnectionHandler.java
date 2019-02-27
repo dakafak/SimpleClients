@@ -2,11 +2,13 @@ package server;
 
 import connection.Connection;
 import connection.Id;
+import server.data.datatypes.ConnectionPayloadPair;
 import server.data.payload.Payload;
 import server.data.task.Task;
 import server.handlerthreads.ConnectionService;
 import server.handlerthreads.ConnectionValidatorService;
 import server.handlerthreads.DataTransferService;
+import server.handlerthreads.TaskExecutorService;
 import server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,38 +19,34 @@ public class ConnectionHandler {
     private ConnectionService connectionService;
     private ConnectionValidatorService connectionValidatorService;
     private DataTransferService dataTransferService;
+    private TaskExecutorService taskExecutorService;
 
     private ConcurrentHashMap<Id, Connection> clients;
     private ConcurrentLinkedQueue<Connection> clientsToValidate;
-    private ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> inputPayloadQueuePerConnectionId;
     private ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> outputPayloadQueuePerConnectionId;
     private ConcurrentHashMap<Id, ConnectionReceiveDataHelper> connectionReceiveDataHelpers;
-    private ConcurrentHashMap<Enum, Task> tasks;
-    private int numberOfThreads;
+    private ConcurrentLinkedQueue<ConnectionPayloadPair> inputQueue;
     private int port;
 
-    public ConnectionHandler(int numberOfThreads, int port){
-        this.numberOfThreads = numberOfThreads;
+    public ConnectionHandler(int port){
         this.port = port;
 
         clients = new ConcurrentHashMap<>();
         clientsToValidate = new ConcurrentLinkedQueue<>();
-        inputPayloadQueuePerConnectionId = new ConcurrentHashMap<>();
         outputPayloadQueuePerConnectionId = new ConcurrentHashMap<>();
         connectionReceiveDataHelpers = new ConcurrentHashMap<>();
-        tasks = new ConcurrentHashMap<>();
+        inputQueue = new ConcurrentLinkedQueue<>();
     }
 
-    //TODO consider updating all start methods with threads to use a ExecutorService and the numberOfThreads value above
     public void startListeningForConnections(){
-        connectionService = new ConnectionService(numberOfThreads, port, clientsToValidate);
+        connectionService = new ConnectionService(port, clientsToValidate);
         connectionService.setContinueRunning(true);
         Thread connectionThread = new Thread(connectionService);
         connectionThread.start();
     }
 
     public void startValidatingClients(){
-        connectionValidatorService = new ConnectionValidatorService(clients, clientsToValidate, connectionReceiveDataHelpers, inputPayloadQueuePerConnectionId);
+        connectionValidatorService = new ConnectionValidatorService(clients, clientsToValidate, connectionReceiveDataHelpers, inputQueue, taskExecutorService);
         connectionValidatorService.setContinueRunning(true);
         Thread connectionValidatorThread = new Thread(connectionValidatorService);
         connectionValidatorThread.start();
@@ -62,6 +60,13 @@ public class ConnectionHandler {
         dataTransferServiceThread.start();
     }
 
+    public void startTaskExecutorService(int numberOfThreads, long timeoutInMilliseconds){
+        taskExecutorService = new TaskExecutorService(numberOfThreads, timeoutInMilliseconds);
+        taskExecutorService.setContinueRunning(true);
+        Thread taskExecutorServiceThread = new Thread(taskExecutorService);
+        taskExecutorServiceThread.start();
+    }
+
     public void stopListeningForConnections(){
         connectionService.setContinueRunning(false);
     }
@@ -72,7 +77,6 @@ public class ConnectionHandler {
                 if(connection.clientShouldBeDestroyed()) {
                     clients.remove(connection.getId());
                     outputPayloadQueuePerConnectionId.remove(connection.getId());
-                    inputPayloadQueuePerConnectionId.remove(connection.getId());
                     continue;
                 }
 
@@ -83,7 +87,6 @@ public class ConnectionHandler {
                     }
 
                     outputPayloadQueuePerConnectionId.get(connection.getId()).add(payload);
-//                    connection.sendData(payload); TODO this will be done in the data transfer service
                 }
             }
         }
@@ -104,10 +107,6 @@ public class ConnectionHandler {
         }
     }
 
-    public ConcurrentHashMap<Id, Connection> getClients() {
-        return clients;
-    }
-
     public Connection getClient(Id id){
         if(id != null && clients.containsKey(id)) {
             return clients.get(id);
@@ -117,18 +116,82 @@ public class ConnectionHandler {
     }
 
     public void addTask(Enum taskType, Task task){
-        tasks.put(taskType, task);
+        if(taskExecutorService != null) {
+            taskExecutorService.addTask(taskType, task);
+        } else {
+            System.out.println("-- ERROR Tried adding a task before task executor service was setup");
+        }
+    }
+
+    public ConnectionService getConnectionService() {
+        return connectionService;
+    }
+
+    public void setConnectionService(ConnectionService connectionService) {
+        this.connectionService = connectionService;
+    }
+
+    public ConnectionValidatorService getConnectionValidatorService() {
+        return connectionValidatorService;
+    }
+
+    public void setConnectionValidatorService(ConnectionValidatorService connectionValidatorService) {
+        this.connectionValidatorService = connectionValidatorService;
+    }
+
+    public DataTransferService getDataTransferService() {
+        return dataTransferService;
+    }
+
+    public void setDataTransferService(DataTransferService dataTransferService) {
+        this.dataTransferService = dataTransferService;
+    }
+
+    public ConcurrentHashMap<Id, Connection> getClients() {
+        return clients;
     }
 
     public void setClients(ConcurrentHashMap<Id, Connection> clients) {
         this.clients = clients;
     }
 
-    public ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> getInputPayloadQueuePerConnectionId() {
-        return inputPayloadQueuePerConnectionId;
+    public ConcurrentLinkedQueue<Connection> getClientsToValidate() {
+        return clientsToValidate;
+    }
+
+    public void setClientsToValidate(ConcurrentLinkedQueue<Connection> clientsToValidate) {
+        this.clientsToValidate = clientsToValidate;
     }
 
     public ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> getOutputPayloadQueuePerConnectionId() {
         return outputPayloadQueuePerConnectionId;
+    }
+
+    public void setOutputPayloadQueuePerConnectionId(ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> outputPayloadQueuePerConnectionId) {
+        this.outputPayloadQueuePerConnectionId = outputPayloadQueuePerConnectionId;
+    }
+
+    public ConcurrentHashMap<Id, ConnectionReceiveDataHelper> getConnectionReceiveDataHelpers() {
+        return connectionReceiveDataHelpers;
+    }
+
+    public void setConnectionReceiveDataHelpers(ConcurrentHashMap<Id, ConnectionReceiveDataHelper> connectionReceiveDataHelpers) {
+        this.connectionReceiveDataHelpers = connectionReceiveDataHelpers;
+    }
+
+    public ConcurrentLinkedQueue<ConnectionPayloadPair> getInputQueue() {
+        return inputQueue;
+    }
+
+    public void setInputQueue(ConcurrentLinkedQueue<ConnectionPayloadPair> inputQueue) {
+        this.inputQueue = inputQueue;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 }

@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ConnectionService implements Runnable {
 
-    private int numberOfThreads;
     private int port;
     private boolean continueRunning;
 
@@ -17,10 +16,8 @@ public class ConnectionService implements Runnable {
 
     private ConcurrentLinkedQueue<Connection> clientsToValidate;
 
-    public ConnectionService(int numberOfThreads,
-                             int port,
+    public ConnectionService(int port,
                              ConcurrentLinkedQueue<Connection> clientsToValidate){
-        this.numberOfThreads = numberOfThreads;
         this.port = port;
         this.clientsToValidate = clientsToValidate;
     }

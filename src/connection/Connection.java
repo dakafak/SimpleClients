@@ -1,49 +1,45 @@
 package connection;
 
 import server.data.payload.Payload;
+import server.handlerthreads.datahelper.ConnectionSendDataHelper;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class Connection {
 
-    private Socket connection;
-    private ObjectOutputStream outputStream;
+    private Socket socket;
     private ObjectInputStream inputStream;
     private Id id;
     private boolean clientShouldBeDestroyed;
+    private ConnectionSendDataHelper connectionSendDataHelper;
 
-    public Connection(Socket connection){
-        this.connection = connection;
-    }
+    public Connection(Socket socket){
+        this.socket = socket;
+        connectionSendDataHelper = new ConnectionSendDataHelper(socket);
+        connectionSendDataHelper.setContinueRunning(true);
+        Thread connectionSendDataHelperThread = new Thread(connectionSendDataHelper);
+        connectionSendDataHelperThread.start();
 
-    public void sendData(Payload payload){
         try {
-            if(outputStream == null){
-                outputStream = new ObjectOutputStream(connection.getOutputStream());
-            }
-
-            outputStream.writeObject(payload);
-            outputStream.flush();
+            inputStream = new ObjectInputStream(socket.getInputStream());
         } catch (IOException e) {
+            clientShouldBeDestroyed = true;
             e.printStackTrace();
         }
     }
 
+    public void sendData(Payload payload){
+        connectionSendDataHelper.addPayloadToSend(payload);
+    }
+
     public Payload retrieveData(){
         try {
-            if(inputStream == null){
-                inputStream = new ObjectInputStream(connection.getInputStream());
-            }
-
-            return (Payload) inputStream.readObject();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (ClassCastException e){
+            Payload readObject = (Payload) inputStream.readObject();
+            return readObject;
+        } catch (Exception e) {
+            clientShouldBeDestroyed = true;
             e.printStackTrace();
         }
 
