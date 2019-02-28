@@ -1,23 +1,20 @@
 package server.handlerthreads.datahelper;
 
 import connection.Connection;
-import server.data.datatypes.ConnectionPayloadPair;
 import server.data.payload.Payload;
-import server.handlerthreads.TaskExecutorService;
+import server.data.task.Task;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionReceiveDataHelper implements Runnable {
 
     private boolean continueRunning;
     private Connection connection;
-    private ConcurrentLinkedQueue<ConnectionPayloadPair> receivedMessageQueue;
-    private TaskExecutorService taskExecutorService;
+    private ConcurrentHashMap<Enum, Task> tasks;
 
-    public ConnectionReceiveDataHelper(Connection connection, ConcurrentLinkedQueue<ConnectionPayloadPair> inputQueue, TaskExecutorService taskExecutorService) {
+    public ConnectionReceiveDataHelper(Connection connection, ConcurrentHashMap<Enum, Task> tasks) {
         this.connection = connection;
-        this.receivedMessageQueue = inputQueue;
-        this.taskExecutorService = taskExecutorService;
+        this.tasks = tasks;
     }
 
     @Override
@@ -30,10 +27,8 @@ public class ConnectionReceiveDataHelper implements Runnable {
 
             Payload newPayload = connection.retrieveData();
             if(newPayload != null) {
-                if(taskExecutorService.containsTaskType(newPayload.getPayloadType())) {
-                    taskExecutorService.addTaskToExecute(connection, newPayload);
-                } else {
-                    receivedMessageQueue.add(new ConnectionPayloadPair(connection, newPayload));
+                if(tasks.containsKey(newPayload.getPayloadType())) {
+                    tasks.get(newPayload.getPayloadType()).executeTask(connection, newPayload);
                 }
             }
         }

@@ -1,26 +1,30 @@
 package connection;
 
 import server.data.payload.Payload;
-import server.handlerthreads.datahelper.ConnectionSendDataHelper;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 public class Connection {
 
     private Socket socket;
     private ObjectInputStream inputStream;
+    private ObjectOutputStream outputStream;
     private Id id;
     private boolean clientShouldBeDestroyed;
-    private ConnectionSendDataHelper connectionSendDataHelper;
 
     public Connection(Socket socket){
         this.socket = socket;
-        connectionSendDataHelper = new ConnectionSendDataHelper(socket);
-        connectionSendDataHelper.setContinueRunning(true);
-        Thread connectionSendDataHelperThread = new Thread(connectionSendDataHelper);
-        connectionSendDataHelperThread.start();
+
+        try {
+            outputStream = new ObjectOutputStream(socket.getOutputStream());
+        } catch (IOException e) {
+            clientShouldBeDestroyed = true;
+            e.printStackTrace();
+        }
 
         try {
             inputStream = new ObjectInputStream(socket.getInputStream());
@@ -30,8 +34,13 @@ public class Connection {
         }
     }
 
-    public void sendData(Payload payload){
-        connectionSendDataHelper.addPayloadToSend(payload);
+    synchronized public void sendData(Payload payload){
+        try {
+            outputStream.writeObject(payload);
+            outputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public Payload retrieveData(){
@@ -56,5 +65,19 @@ public class Connection {
 
     public void setId(Id id) {
         this.id = id;
+    }
+
+    public static Connection newConnection(String hostname, int port) {
+        Socket clientSocket = new Socket();
+
+        try {
+            clientSocket.connect(new InetSocketAddress(hostname, port));
+            Connection connection = new Connection(clientSocket);
+            return connection;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

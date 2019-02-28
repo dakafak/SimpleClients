@@ -1,11 +1,14 @@
 package server.handlerthreads;
 
 import connection.Connection;
+import connection.Id;
+import server.data.task.Task;
+import server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionService implements Runnable {
 
@@ -14,12 +17,18 @@ public class ConnectionService implements Runnable {
 
     private ServerSocket serverSocket;
 
-    private ConcurrentLinkedQueue<Connection> clientsToValidate;
+    private ConcurrentHashMap<Id, Connection> clients;
+    private ConcurrentHashMap<Id, ConnectionReceiveDataHelper> connectionReceiveDataHelpers;
+    private ConcurrentHashMap<Enum, Task> tasks;
 
     public ConnectionService(int port,
-                             ConcurrentLinkedQueue<Connection> clientsToValidate){
+                             ConcurrentHashMap<Id, Connection> clients,
+                             ConcurrentHashMap<Id, ConnectionReceiveDataHelper> connectionReceiveDataHelpers,
+                             ConcurrentHashMap<Enum, Task> tasks){
         this.port = port;
-        this.clientsToValidate = clientsToValidate;
+        this.clients = clients;
+        this.connectionReceiveDataHelpers = connectionReceiveDataHelpers;
+        this.tasks = tasks;
     }
 
     @Override
@@ -30,8 +39,16 @@ public class ConnectionService implements Runnable {
             while(continueRunning){
                 Socket newClientSocket = serverSocket.accept();
                 System.out.println("Accepted a new client");
+
                 Connection newClientConnection = new Connection(newClientSocket);
-                clientsToValidate.add(newClientConnection);
+                newClientConnection.setId(new Id((long)Math.random()*100));
+                clients.put(newClientConnection.getId(), newClientConnection);
+
+                ConnectionReceiveDataHelper connectionReceiveDataHelper = new ConnectionReceiveDataHelper(newClientConnection, tasks);
+                connectionReceiveDataHelper.setContinueRunning(true);
+                Thread connectionReceiveDataHelperThread = new Thread(connectionReceiveDataHelper);
+                connectionReceiveDataHelperThread.start();
+                connectionReceiveDataHelpers.put(newClientConnection.getId(), connectionReceiveDataHelper);
             }
         } catch (IOException e) {
             e.printStackTrace();
