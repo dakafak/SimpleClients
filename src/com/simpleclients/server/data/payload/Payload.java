@@ -1,4 +1,4 @@
-package server.data.payload;
+package com.simpleclients.server.data.payload;
 
 import java.io.Serializable;
 
@@ -6,16 +6,10 @@ public class Payload<T> implements Serializable {
 
     private T data;
     private Enum payloadType;
-    private PayloadValidator<T> payloadValidator;
 
-    public Payload(T data, Enum payloadType, PayloadValidator<T> payloadValidator){
+    public Payload(T data, Enum payloadType){
         this.data = data;
         this.payloadType = payloadType;
-        this.payloadValidator = payloadValidator;
-    }
-
-    public boolean isValid(){
-        return payloadValidator != null && payloadValidator.isValid(data);
     }
 
     @Override
@@ -25,6 +19,18 @@ public class Payload<T> implements Serializable {
 
     public Enum getPayloadType() {
         return payloadType;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public void setData(T data) {
+        this.data = data;
+    }
+
+    public void setPayloadType(Enum payloadType) {
+        this.payloadType = payloadType;
     }
 
 }

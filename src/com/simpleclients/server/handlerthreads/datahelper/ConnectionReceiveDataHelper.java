@@ -1,8 +1,8 @@
-package server.handlerthreads.datahelper;
+package com.simpleclients.server.handlerthreads.datahelper;
 
-import connection.Connection;
-import server.data.payload.Payload;
-import server.data.task.Task;
+import com.simpleclients.connection.Connection;
+import com.simpleclients.server.data.payload.Payload;
+import com.simpleclients.server.data.task.Task;
 
 import java.util.concurrent.ConcurrentHashMap;
 

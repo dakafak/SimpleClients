@@ -1,8 +1,8 @@
-package testclasses;
+package com.simpleclients.examples;
 
-import connection.Connection;
-import server.data.payload.Payload;
-import server.data.task.Task;
+import com.simpleclients.connection.Connection;
+import com.simpleclients.server.data.payload.Payload;
+import com.simpleclients.server.data.task.Task;
 
 public class PingTask extends Task {
 

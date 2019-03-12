@@ -1,6 +1,6 @@
-package connection;
+package com.simpleclients.connection;
 
-import server.data.payload.Payload;
+import com.simpleclients.server.data.payload.Payload;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

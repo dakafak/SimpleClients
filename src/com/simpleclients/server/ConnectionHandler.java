@@ -1,21 +1,19 @@
-package server;
+package com.simpleclients.server;
 
-import connection.Connection;
-import connection.Id;
-import server.data.payload.Payload;
-import server.data.task.Task;
-import server.handlerthreads.ConnectionService;
-import server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
+import com.simpleclients.connection.Connection;
+import com.simpleclients.connection.Id;
+import com.simpleclients.server.data.payload.Payload;
+import com.simpleclients.server.data.task.Task;
+import com.simpleclients.server.handlerthreads.ConnectionService;
+import com.simpleclients.server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ConnectionHandler {
 
     private ConnectionService connectionService;
 
     private ConcurrentHashMap<Id, Connection> clients;
-    private ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> outputPayloadQueuePerConnectionId;
     private ConcurrentHashMap<Id, ConnectionReceiveDataHelper> connectionReceiveDataHelpers;
     private ConcurrentHashMap<Enum, Task> tasks;
     private int port;
@@ -24,7 +22,6 @@ public class ConnectionHandler {
         this.port = port;
 
         clients = new ConcurrentHashMap<>();
-        outputPayloadQueuePerConnectionId = new ConcurrentHashMap<>();
         connectionReceiveDataHelpers = new ConcurrentHashMap<>();
         tasks = new ConcurrentHashMap<>();
     }
@@ -40,17 +37,8 @@ public class ConnectionHandler {
         connectionService.setContinueRunning(false);
     }
 
-    public void sendPayloadListToClient(Connection connection, ConcurrentLinkedQueue<Payload> payloads){
-        if(!outputPayloadQueuePerConnectionId.containsKey(connection.getId())){
-            ConcurrentLinkedQueue<Payload> concurrentLinkedQueue = new ConcurrentLinkedQueue<>();
-            outputPayloadQueuePerConnectionId.put(connection.getId(), concurrentLinkedQueue);
-        }
-
-        outputPayloadQueuePerConnectionId.get(connection.getId()).addAll(payloads);
-    }
-
     public void sendPayloadToClient(Connection connection, Payload payload){
-        if(payload.isValid() && !connection.clientShouldBeDestroyed()){
+        if(!connection.clientShouldBeDestroyed()){
             connection.sendData(payload);
         }
     }
@@ -81,14 +69,6 @@ public class ConnectionHandler {
 
     public void setClients(ConcurrentHashMap<Id, Connection> clients) {
         this.clients = clients;
-    }
-
-    public ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> getOutputPayloadQueuePerConnectionId() {
-        return outputPayloadQueuePerConnectionId;
-    }
-
-    public void setOutputPayloadQueuePerConnectionId(ConcurrentHashMap<Id, ConcurrentLinkedQueue<Payload>> outputPayloadQueuePerConnectionId) {
-        this.outputPayloadQueuePerConnectionId = outputPayloadQueuePerConnectionId;
     }
 
     public ConcurrentHashMap<Id, ConnectionReceiveDataHelper> getConnectionReceiveDataHelpers() {

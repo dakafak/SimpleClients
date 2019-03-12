@@ -1,4 +1,4 @@
-package server.data.datatypes;
+package com.simpleclients.server.data.datatypes;
 
 public class ConnectionData<T> {
 
