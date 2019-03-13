@@ -15,7 +15,7 @@ public class TerminalClientExample {
 		int payloadsToSend = 5;
 
 		for(int i = 0; i < payloadsToSend; i++) {
-			Payload<Action> newPayload = new Payload<>(Action.values()[(int)Math.floor(Math.random() * Action.values().length - 1)], ACTION);
+			Payload<Action> newPayload = new Payload<>(Action.values()[(int)Math.floor(Math.random() * Action.values().length)], ACTION);
 			System.out.println("Sending payload: " + newPayload);
 			connection.sendData(newPayload);
 
