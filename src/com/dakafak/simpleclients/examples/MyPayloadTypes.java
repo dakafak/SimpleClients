@@ -1,5 +1,5 @@
 package com.dakafak.simpleclients.examples;
 
 public enum MyPayloadTypes {
-    PING
+    PING, ACTION, ALL_ACTION_RECORDS;
 }

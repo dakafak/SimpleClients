@@ -1,11 +1,12 @@
-package com.dakafak.simpleclients.examples;
+package com.dakafak.simpleclients.examples.ping;
 
 import com.dakafak.simpleclients.connection.Connection;
+import com.dakafak.simpleclients.examples.MyPayloadTypes;
 import com.dakafak.simpleclients.server.data.payload.Payload;
 
-public class ClientExample {
+public class PingClientExample {
 
-	public ClientExample() {
+	public PingClientExample() {
 		System.out.println("-- Setting up client socket");
 		Connection connection = Connection.newConnection("127.0.0.1", 1776);
 

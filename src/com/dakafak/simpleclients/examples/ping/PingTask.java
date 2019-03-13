@@ -1,4 +1,4 @@
-package com.dakafak.simpleclients.examples;
+package com.dakafak.simpleclients.examples.ping;
 
 import com.dakafak.simpleclients.connection.Connection;
 import com.dakafak.simpleclients.server.data.payload.Payload;
