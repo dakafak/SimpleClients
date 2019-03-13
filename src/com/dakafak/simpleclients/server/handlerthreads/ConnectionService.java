@@ -1,9 +1,9 @@
-package com.simpleclients.server.handlerthreads;
+package com.dakafak.simpleclients.server.handlerthreads;
 
-import com.simpleclients.connection.Connection;
-import com.simpleclients.connection.Id;
-import com.simpleclients.server.data.task.Task;
-import com.simpleclients.server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
+import com.dakafak.simpleclients.connection.Connection;
+import com.dakafak.simpleclients.connection.Id;
+import com.dakafak.simpleclients.server.data.task.Task;
+import com.dakafak.simpleclients.server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
 
 import java.io.IOException;
 import java.net.ServerSocket;

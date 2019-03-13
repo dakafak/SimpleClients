@@ -1,4 +1,4 @@
-package com.simpleclients.server.data.payload;
+package com.dakafak.simpleclients.server.data.payload;
 
 import java.io.Serializable;
 

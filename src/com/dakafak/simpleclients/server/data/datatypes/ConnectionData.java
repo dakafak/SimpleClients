@@ -1,4 +1,4 @@
-package com.simpleclients.server.data.datatypes;
+package com.dakafak.simpleclients.server.data.datatypes;
 
 public class ConnectionData<T> {
 

@@ -1,7 +1,7 @@
-package com.simpleclients.examples;
+package com.dakafak.simpleclients.examples;
 
-import com.simpleclients.connection.Connection;
-import com.simpleclients.server.data.payload.Payload;
+import com.dakafak.simpleclients.connection.Connection;
+import com.dakafak.simpleclients.server.data.payload.Payload;
 
 public class ClientExample {
 

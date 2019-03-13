@@ -1,7 +1,7 @@
-package com.simpleclients.server.data.datatypes;
+package com.dakafak.simpleclients.server.data.datatypes;
 
-import com.simpleclients.connection.Connection;
-import com.simpleclients.server.data.payload.Payload;
+import com.dakafak.simpleclients.connection.Connection;
+import com.dakafak.simpleclients.server.data.payload.Payload;
 
 public class ConnectionPayloadPair {
 

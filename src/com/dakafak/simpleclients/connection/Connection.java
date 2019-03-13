@@ -1,6 +1,6 @@
-package com.simpleclients.connection;
+package com.dakafak.simpleclients.connection;
 
-import com.simpleclients.server.data.payload.Payload;
+import com.dakafak.simpleclients.server.data.payload.Payload;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

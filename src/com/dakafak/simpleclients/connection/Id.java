@@ -1,4 +1,4 @@
-package com.simpleclients.connection;
+package com.dakafak.simpleclients.connection;
 
 public class Id<T> {
 
