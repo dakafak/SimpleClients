@@ -2,3 +2,6 @@
 .idea/*
 *.iml
 /.output/*
+.gradle
+/build/
+gradle-app.setting
