@@ -1,6 +1,8 @@
 package com.dakafak.simpleclients.connection;
 
-public class Id<T> {
+import java.io.Serializable;
+
+public class Id<T> implements Serializable {
 
 	T id;
 
@@ -15,4 +17,12 @@ public class Id<T> {
 	public void setId(T id) {
 		this.id = id;
 	}
+
+	@Override
+	public String toString() {
+		return "Id{" +
+				"id=" + id +
+				'}';
+	}
+
 }
