@@ -14,49 +14,96 @@ import static com.dakafak.simpleclients.examples.MyPayloadTypes.CONNECTION_REQUE
 public class ClientExample {
 
 	private Connection connection;
-	int pingPayloadsToSend = 3;
-	int actionPayloadsToSend = 3;
+	int sessionId;
 
-	public ClientExample() {
-		System.out.println("-- Setting up client socket");
-		connection = Connection.newConnection("127.0.0.1", 1776);
+	int timeToRunPingTest = 1000;
+	int timeToRunActionTest = 1000;
 
-		System.out.println("-- Testing connection to server -- ");
+	public ClientExample(Connection connection, int sessionId) {
+		this.connection = connection;
+		this.sessionId = sessionId;
+
 		connectToServer();
-
-		System.out.println("-- Testing ping -- ");
 		sendPing();
-
-		System.out.println("-- Testing actions -- ");
 		sendActions();
 	}
 
 	private void connectToServer() {
-		ConnectionRequest connectionRequest = new ConnectionRequest("Test client " + (int)Math.round(Math.random()*100), 1);
+		ConnectionRequest connectionRequest = new ConnectionRequest("Test client " + connection.getId(), sessionId);
 		connection.sendData(new Payload(connectionRequest, CONNECTION_REQUEST));
 	}
 
+	long numberPingTestRuns;
+	long totalPingTestRunTime;
+
 	private void sendPing() {
-		for(int i = 0; i < pingPayloadsToSend; i++) {
-			Payload<String> testPayload = new Payload<>("Test Payload " + i, MyPayloadTypes.PING);
-			System.out.print("Sending payload: " + testPayload + " | ");
-			long timeBeforeSend = System.nanoTime();
+		long pingTestFinishTime = System.currentTimeMillis() + timeToRunPingTest;
+		while(System.currentTimeMillis() < pingTestFinishTime) {
+			long startOfPingTest = System.nanoTime();
+			Payload<String> testPayload = new Payload<>("Test Ping Payload ", MyPayloadTypes.PING);
 			connection.sendData(testPayload);
-			Payload receivedPayload = connection.retrieveData();
-			long timeAfterSend = System.nanoTime();
-			System.out.print(((timeAfterSend - timeBeforeSend) / 1000000.0) + "ms -> Retrieved payload: " + receivedPayload + System.lineSeparator());
+			connection.retrieveData();
+			long endOfPingTest = System.nanoTime();
+			totalPingTestRunTime += endOfPingTest - startOfPingTest;
+			numberPingTestRuns++;
 		}
+		System.out.println("Finished ping test for: " + connection.getId());
 	}
+
+	long numberActionTestsRun;
+	long totalActionTestRunTime;
 
 	private void sendActions() {
-		for(int i = 0; i < actionPayloadsToSend; i++) {
+		long actionTestFinishTime = System.currentTimeMillis() + timeToRunActionTest;
+		while(System.currentTimeMillis() < actionTestFinishTime) {
+			long startOfActionTest = System.nanoTime();
 			Payload<Action> newPayload = new Payload<>(Action.values()[(int)Math.floor(Math.random() * Action.values().length)], ACTION);
-			System.out.println("Sending payload: " + newPayload);
 			connection.sendData(newPayload);
-
-			Payload readResponseFromServer = connection.retrieveData();
-			System.out.println("Action records: " + (LinkedList<ActionRecord>)readResponseFromServer.getData());
+			connection.retrieveData();
+			long endOfActionTest = System.nanoTime();
+			totalActionTestRunTime += endOfActionTest - startOfActionTest;
+			numberActionTestsRun++;
 		}
+		System.out.println("Finished action test for: " + connection.getId());
 	}
 
+	public double getAveragePingTimeInNanoSeconds() {
+		return numberPingTestRuns / (double) totalPingTestRunTime;
+	}
+
+	public double getAverageActionTestTimeInNanoSeconds() {
+		return numberActionTestsRun / (double) totalActionTestRunTime;
+	}
+
+	public long getNumberPingTestRuns() {
+		return numberPingTestRuns;
+	}
+
+	public void setNumberPingTestRuns(long numberPingTestRuns) {
+		this.numberPingTestRuns = numberPingTestRuns;
+	}
+
+	public long getTotalPingTestRunTime() {
+		return totalPingTestRunTime;
+	}
+
+	public void setTotalPingTestRunTime(long totalPingTestRunTime) {
+		this.totalPingTestRunTime = totalPingTestRunTime;
+	}
+
+	public long getNumberActionTestsRun() {
+		return numberActionTestsRun;
+	}
+
+	public void setNumberActionTestsRun(long numberActionTestsRun) {
+		this.numberActionTestsRun = numberActionTestsRun;
+	}
+
+	public long getTotalActionTestRunTime() {
+		return totalActionTestRunTime;
+	}
+
+	public void setTotalActionTestRunTime(long totalActionTestRunTime) {
+		this.totalActionTestRunTime = totalActionTestRunTime;
+	}
 }

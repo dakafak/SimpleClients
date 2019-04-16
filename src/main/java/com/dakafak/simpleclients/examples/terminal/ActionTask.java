@@ -1,13 +1,13 @@
 package com.dakafak.simpleclients.examples.terminal;
 
 import com.dakafak.simpleclients.connection.Connection;
-import com.dakafak.simpleclients.connection.Id;
 import com.dakafak.simpleclients.examples.connection.User;
 import com.dakafak.simpleclients.server.data.payload.Payload;
 import com.dakafak.simpleclients.server.data.task.Task;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -17,11 +17,11 @@ public class ActionTask extends Task {
 
 	private ConcurrentLinkedQueue<ActionRecord> actionRecords;
 	private ConcurrentHashMap<Integer, List<User>> sessionIdToUsers;
-	private ConcurrentHashMap<Id, Integer> connectionIdToSessionId;
+	private ConcurrentHashMap<UUID, Integer> connectionIdToSessionId;
 
 	public ActionTask(ConcurrentLinkedQueue<ActionRecord> actionRecords,
 					  ConcurrentHashMap<Integer, List<User>> sessionIdToUsers,
-					  ConcurrentHashMap<Id, Integer> connectionIdToSessionId) {
+					  ConcurrentHashMap<UUID, Integer> connectionIdToSessionId) {
 		this.actionRecords = actionRecords;
 		this.sessionIdToUsers = sessionIdToUsers;
 		this.connectionIdToSessionId = connectionIdToSessionId;
@@ -36,7 +36,6 @@ public class ActionTask extends Task {
 			actionRecord.setConnectionWhoMadeAction(connection.getId());
 
 			actionRecords.add(actionRecord);
-			System.out.println(actionRecord);
 
 			LinkedList<ActionRecord> allCurrentActions = new LinkedList<>();
 			allCurrentActions.addAll(actionRecords);

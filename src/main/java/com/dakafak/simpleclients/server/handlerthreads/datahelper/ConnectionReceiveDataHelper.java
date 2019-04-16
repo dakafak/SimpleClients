@@ -3,12 +3,12 @@ package com.dakafak.simpleclients.server.handlerthreads.datahelper;
 import com.dakafak.simpleclients.connection.Connection;
 import com.dakafak.simpleclients.server.data.payload.Payload;
 import com.dakafak.simpleclients.server.data.task.Task;
+import com.dakafak.simpleclients.server.data.task.type.DefaultTaskTypes;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionReceiveDataHelper implements Runnable {
 
-    private boolean continueRunning;
     private Connection connection;
     private ConcurrentHashMap<Enum, Task> tasks;
 
@@ -19,12 +19,7 @@ public class ConnectionReceiveDataHelper implements Runnable {
 
     @Override
     public void run() {
-        while(continueRunning){
-            if(connection.clientShouldBeDestroyed()){
-                continueRunning = false;
-                break;
-            }
-
+        while(!connection.clientShouldBeDestroyed()){
             Payload newPayload = connection.retrieveData();
             if(newPayload != null) {
                 if(tasks.containsKey(newPayload.getPayloadType())) {
@@ -32,10 +27,8 @@ public class ConnectionReceiveDataHelper implements Runnable {
                 }
             }
         }
-    }
 
-    public void setContinueRunning(boolean continueRunning) {
-        this.continueRunning = continueRunning;
+        tasks.get(DefaultTaskTypes.DISCONNECT_CLIENT).executeTask(connection, null);
     }
 
 }

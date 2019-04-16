@@ -1,20 +1,19 @@
 package com.dakafak.simpleclients.examples.terminal;
 
-import com.dakafak.simpleclients.connection.Id;
-
 import java.io.Serializable;
+import java.util.UUID;
 
 public class ActionRecord implements Serializable {
 
-	private Id connectionWhoMadeAction;
+	private UUID connectionWhoMadeAction;
 	private Action actionPerformed;
 	private long timestamp;
 
-	public Id getConnectionWhoMadeAction() {
+	public UUID getConnectionWhoMadeAction() {
 		return connectionWhoMadeAction;
 	}
 
-	public void setConnectionWhoMadeAction(Id connectionWhoMadeAction) {
+	public void setConnectionWhoMadeAction(UUID connectionWhoMadeAction) {
 		this.connectionWhoMadeAction = connectionWhoMadeAction;
 	}
 

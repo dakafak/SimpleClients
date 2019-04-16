@@ -7,13 +7,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.UUID;
 
 public class Connection {
 
     private Socket socket;
     private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
-    private Id id;
+    private UUID id = UUID.randomUUID();
     private boolean clientShouldBeDestroyed;
 
     public Connection(Socket socket){
@@ -34,22 +35,33 @@ public class Connection {
         }
     }
 
-    synchronized public void sendData(Payload payload){
+    public void closeConnection() {
         try {
-            outputStream.writeObject(payload);
-            outputStream.flush();
+            socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    synchronized public void sendData(Payload payload){
+        if(!clientShouldBeDestroyed) {
+            try {
+                outputStream.writeObject(payload);
+                outputStream.flush();
+            } catch (IOException e) {
+                clientShouldBeDestroyed = true;
+            }
+        }
+    }
+
     public Payload retrieveData(){
-        try {
-            Payload readObject = (Payload) inputStream.readObject();
-            return readObject;
-        } catch (Exception e) {
-            clientShouldBeDestroyed = true;
-            e.printStackTrace();
+        if(!clientShouldBeDestroyed) {
+            try {
+                Payload readObject = (Payload) inputStream.readObject();
+                return readObject;
+            } catch (Exception e) {
+                clientShouldBeDestroyed = true;
+            }
         }
 
         return null;
@@ -59,12 +71,8 @@ public class Connection {
         return clientShouldBeDestroyed;
     }
 
-    public Id getId() {
+    public UUID getId() {
         return id;
-    }
-
-    public void setId(Id id) {
-        this.id = id;
     }
 
     public static Connection newConnection(String hostname, int port) {

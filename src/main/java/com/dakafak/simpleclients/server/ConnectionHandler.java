@@ -1,20 +1,22 @@
 package com.dakafak.simpleclients.server;
 
 import com.dakafak.simpleclients.connection.Connection;
-import com.dakafak.simpleclients.connection.Id;
 import com.dakafak.simpleclients.server.data.payload.Payload;
+import com.dakafak.simpleclients.server.data.task.RemoveClientTask;
 import com.dakafak.simpleclients.server.data.task.Task;
+import com.dakafak.simpleclients.server.data.task.type.DefaultTaskTypes;
 import com.dakafak.simpleclients.server.handlerthreads.ConnectionService;
 import com.dakafak.simpleclients.server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
 
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionHandler {
 
     private ConnectionService connectionService;
 
-    private ConcurrentHashMap<Id, Connection> clients;
-    private ConcurrentHashMap<Id, ConnectionReceiveDataHelper> connectionReceiveDataHelpers;
+    private ConcurrentHashMap<UUID, Connection> clients;
+    private ConcurrentHashMap<UUID, ConnectionReceiveDataHelper> connectionReceiveDataHelpers;
     private ConcurrentHashMap<Enum, Task> tasks;
     private int port;
 
@@ -24,6 +26,8 @@ public class ConnectionHandler {
         clients = new ConcurrentHashMap<>();
         connectionReceiveDataHelpers = new ConcurrentHashMap<>();
         tasks = new ConcurrentHashMap<>();
+
+        tasks.put(DefaultTaskTypes.DISCONNECT_CLIENT, new RemoveClientTask(clients, connectionReceiveDataHelpers));
     }
 
     public void startListeningForConnections(){
@@ -37,13 +41,16 @@ public class ConnectionHandler {
         connectionService.setContinueRunning(false);
     }
 
-    public void sendPayloadToClient(Connection connection, Payload payload){
+    public boolean sendPayloadToClient(Connection connection, Payload payload){
         if(!connection.clientShouldBeDestroyed()){
             connection.sendData(payload);
+            return true;
         }
+
+        return false;
     }
 
-    public Connection getClient(Id id){
+    public Connection getClient(UUID id){
         if(id != null && clients.containsKey(id)) {
             return clients.get(id);
         }
@@ -63,19 +70,19 @@ public class ConnectionHandler {
         this.connectionService = connectionService;
     }
 
-    public ConcurrentHashMap<Id, Connection> getClients() {
+    public ConcurrentHashMap<UUID, Connection> getClients() {
         return clients;
     }
 
-    public void setClients(ConcurrentHashMap<Id, Connection> clients) {
+    public void setClients(ConcurrentHashMap<UUID, Connection> clients) {
         this.clients = clients;
     }
 
-    public ConcurrentHashMap<Id, ConnectionReceiveDataHelper> getConnectionReceiveDataHelpers() {
+    public ConcurrentHashMap<UUID, ConnectionReceiveDataHelper> getConnectionReceiveDataHelpers() {
         return connectionReceiveDataHelpers;
     }
 
-    public void setConnectionReceiveDataHelpers(ConcurrentHashMap<Id, ConnectionReceiveDataHelper> connectionReceiveDataHelpers) {
+    public void setConnectionReceiveDataHelpers(ConcurrentHashMap<UUID, ConnectionReceiveDataHelper> connectionReceiveDataHelpers) {
         this.connectionReceiveDataHelpers = connectionReceiveDataHelpers;
     }
 

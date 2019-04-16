@@ -1,13 +1,13 @@
 package com.dakafak.simpleclients.server.handlerthreads;
 
 import com.dakafak.simpleclients.connection.Connection;
-import com.dakafak.simpleclients.connection.Id;
 import com.dakafak.simpleclients.server.data.task.Task;
 import com.dakafak.simpleclients.server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionService implements Runnable {
@@ -17,13 +17,13 @@ public class ConnectionService implements Runnable {
 
     private ServerSocket serverSocket;
 
-    private ConcurrentHashMap<Id, Connection> clients;
-    private ConcurrentHashMap<Id, ConnectionReceiveDataHelper> connectionReceiveDataHelpers;
+    private ConcurrentHashMap<UUID, Connection> clients;
+    private ConcurrentHashMap<UUID, ConnectionReceiveDataHelper> connectionReceiveDataHelpers;
     private ConcurrentHashMap<Enum, Task> tasks;
 
     public ConnectionService(int port,
-                             ConcurrentHashMap<Id, Connection> clients,
-                             ConcurrentHashMap<Id, ConnectionReceiveDataHelper> connectionReceiveDataHelpers,
+                             ConcurrentHashMap<UUID, Connection> clients,
+                             ConcurrentHashMap<UUID, ConnectionReceiveDataHelper> connectionReceiveDataHelpers,
                              ConcurrentHashMap<Enum, Task> tasks){
         this.port = port;
         this.clients = clients;
@@ -38,14 +38,12 @@ public class ConnectionService implements Runnable {
 
             while(continueRunning){
                 Socket newClientSocket = serverSocket.accept();
-                System.out.println("Accepted a new client");
 
                 Connection newClientConnection = new Connection(newClientSocket);
-                newClientConnection.setId(new Id((long)Math.random()*100));
+                System.out.println("Accepted a new client: " + newClientConnection.getId());
                 clients.put(newClientConnection.getId(), newClientConnection);
 
                 ConnectionReceiveDataHelper connectionReceiveDataHelper = new ConnectionReceiveDataHelper(newClientConnection, tasks);
-                connectionReceiveDataHelper.setContinueRunning(true);
                 Thread connectionReceiveDataHelperThread = new Thread(connectionReceiveDataHelper);
                 connectionReceiveDataHelperThread.start();
                 connectionReceiveDataHelpers.put(newClientConnection.getId(), connectionReceiveDataHelper);
