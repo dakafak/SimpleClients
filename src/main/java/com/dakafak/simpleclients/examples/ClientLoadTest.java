@@ -3,6 +3,9 @@ package com.dakafak.simpleclients.examples;
 import com.dakafak.simpleclients.connection.Connection;
 import com.dakafak.simpleclients.examples.loadtest.ClientRunner;
 
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -40,17 +43,41 @@ public class ClientLoadTest {
 		}
 
 		System.out.println("Finished running load test.");
+		printResultsFromTest();
 	}
 
 	private void addClientsAndRunTest() {
 		for(int i = 0; i < numberOfConnectionsToTest; i++) {
 			Connection newConnection = Connection.newConnection("127.0.0.1", 1776);
-			ClientRunner clientRunner = new ClientRunner(newConnection, i % clientsPerSessionForTest, clientRunners);
+			ClientRunner clientRunner = new ClientRunner(newConnection, i % clientsPerSessionForTest, clientRunners, completedClientRunners);
 			clientRunners.add(clientRunner);
 		}
 
 		for(ClientRunner clientRunner : clientRunners) {
 			executorService.execute(clientRunner);
+		}
+	}
+
+	private void printResultsFromTest() {
+		List<ClientRunner> sortedClientRunners = new LinkedList<>();
+		sortedClientRunners.addAll(completedClientRunners);
+		sortedClientRunners.sort(new Comparator<ClientRunner>() {
+			@Override
+			public int compare(ClientRunner o1, ClientRunner o2) {
+				if((o1.getClientExample().getAveragePingTimeInNanoSeconds() + o1.getClientExample().getAverageActionTestTimeInNanoSeconds())
+				 >= (o2.getClientExample().getAveragePingTimeInNanoSeconds() + o2.getClientExample().getAverageActionTestTimeInNanoSeconds())) {
+					return 1;
+				} else {
+					return 0;
+				}
+			}
+		});
+
+		for(ClientRunner clientRunner : sortedClientRunners) {
+			ClientExample clientExample = clientRunner.getClientExample();
+			double pingAvarage = clientExample.getAveragePingTimeInNanoSeconds();
+			double actionAvarage = clientExample.getAverageActionTestTimeInNanoSeconds();
+			System.out.println(clientExample.getConnection().getId() + " | ping avg: " + pingAvarage + " | action avg: " + actionAvarage);
 		}
 	}
 

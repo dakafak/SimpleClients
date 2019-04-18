@@ -35,6 +35,7 @@ public class ClientExample {
 
 	long numberPingTestRuns;
 	long totalPingTestRunTime;
+	double averagePingTime;
 
 	private void sendPing() {
 		long pingTestFinishTime = System.currentTimeMillis() + timeToRunPingTest;
@@ -47,11 +48,14 @@ public class ClientExample {
 			totalPingTestRunTime += endOfPingTest - startOfPingTest;
 			numberPingTestRuns++;
 		}
+
+		averagePingTime = numberPingTestRuns / (double) totalPingTestRunTime;
 		System.out.println("Finished ping test for: " + connection.getId());
 	}
 
 	long numberActionTestsRun;
 	long totalActionTestRunTime;
+	double averageActionTime;
 
 	private void sendActions() {
 		long actionTestFinishTime = System.currentTimeMillis() + timeToRunActionTest;
@@ -64,15 +68,17 @@ public class ClientExample {
 			totalActionTestRunTime += endOfActionTest - startOfActionTest;
 			numberActionTestsRun++;
 		}
+
+		averageActionTime = numberActionTestsRun / (double) totalActionTestRunTime;;
 		System.out.println("Finished action test for: " + connection.getId());
 	}
 
 	public double getAveragePingTimeInNanoSeconds() {
-		return numberPingTestRuns / (double) totalPingTestRunTime;
+		return averagePingTime;
 	}
 
 	public double getAverageActionTestTimeInNanoSeconds() {
-		return numberActionTestsRun / (double) totalActionTestRunTime;
+		return averageActionTime;
 	}
 
 	public long getNumberPingTestRuns() {
@@ -105,5 +111,37 @@ public class ClientExample {
 
 	public void setTotalActionTestRunTime(long totalActionTestRunTime) {
 		this.totalActionTestRunTime = totalActionTestRunTime;
+	}
+
+	public Connection getConnection() {
+		return connection;
+	}
+
+	public void setConnection(Connection connection) {
+		this.connection = connection;
+	}
+
+	public int getSessionId() {
+		return sessionId;
+	}
+
+	public void setSessionId(int sessionId) {
+		this.sessionId = sessionId;
+	}
+
+	public int getTimeToRunPingTest() {
+		return timeToRunPingTest;
+	}
+
+	public void setTimeToRunPingTest(int timeToRunPingTest) {
+		this.timeToRunPingTest = timeToRunPingTest;
+	}
+
+	public int getTimeToRunActionTest() {
+		return timeToRunActionTest;
+	}
+
+	public void setTimeToRunActionTest(int timeToRunActionTest) {
+		this.timeToRunActionTest = timeToRunActionTest;
 	}
 }
