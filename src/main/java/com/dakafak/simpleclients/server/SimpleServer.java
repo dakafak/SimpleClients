@@ -11,7 +11,7 @@ import com.dakafak.simpleclients.server.handlerthreads.datahelper.ConnectionRece
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ConnectionHandler {
+public class SimpleServer {
 
     private ConnectionService connectionService;
 
@@ -20,7 +20,7 @@ public class ConnectionHandler {
     private ConcurrentHashMap<Enum, Task> tasks;
     private int port;
 
-    public ConnectionHandler(int port){
+    public SimpleServer(int port){
         this.port = port;
 
         clients = new ConcurrentHashMap<>();

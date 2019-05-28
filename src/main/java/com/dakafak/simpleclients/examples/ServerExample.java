@@ -5,7 +5,7 @@ import com.dakafak.simpleclients.examples.connection.User;
 import com.dakafak.simpleclients.examples.ping.PingTask;
 import com.dakafak.simpleclients.examples.terminal.ActionRecord;
 import com.dakafak.simpleclients.examples.terminal.ActionTask;
-import com.dakafak.simpleclients.server.ConnectionHandler;
+import com.dakafak.simpleclients.server.SimpleServer;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,13 +26,13 @@ public class ServerExample {
 		ConcurrentHashMap<UUID, Integer> connectionIdToSessionId = new ConcurrentHashMap<>();
 
 		ConcurrentLinkedQueue<ActionRecord> actionRecords = new ConcurrentLinkedQueue<>();
-		ConnectionHandler connectionHandler = new ConnectionHandler(1776);
+		SimpleServer simpleServer = new SimpleServer(1776);
 
-		connectionHandler.addTask(CONNECTION_REQUEST, new ConnectionTask(sessionIdToUsers, connectionIdToSessionId));
-		connectionHandler.addTask(MyPayloadTypes.PING, new PingTask());
-		connectionHandler.addTask(ACTION, new ActionTask(actionRecords, sessionIdToUsers, connectionIdToSessionId));
+		simpleServer.addTask(CONNECTION_REQUEST, new ConnectionTask(sessionIdToUsers, connectionIdToSessionId));
+		simpleServer.addTask(MyPayloadTypes.PING, new PingTask());
+		simpleServer.addTask(ACTION, new ActionTask(actionRecords, sessionIdToUsers, connectionIdToSessionId));
 
-		connectionHandler.startListeningForConnections();
+		simpleServer.startListeningForConnections();
 	}
 
 }
