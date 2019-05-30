@@ -49,6 +49,7 @@ public class Connection {
                 outputStream.writeObject(payload);
                 outputStream.flush();
             } catch (IOException e) {
+                e.printStackTrace();
                 clientShouldBeDestroyed = true;
             }
         }
@@ -60,6 +61,7 @@ public class Connection {
                 Payload readObject = (Payload) inputStream.readObject();
                 return readObject;
             } catch (Exception e) {
+                e.printStackTrace();
                 clientShouldBeDestroyed = true;
             }
         }
