@@ -28,4 +28,5 @@ public class TestResult {
 	public void setAverageTimePerTestTime(Map<TestType, Double> averageTimePerTestTime) {
 		this.averageTimePerTestTime = averageTimePerTestTime;
 	}
+
 }

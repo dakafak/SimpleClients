@@ -2,7 +2,6 @@ package dev.fanger.simpleclients.examples.loadtest;
 
 import dev.fanger.simpleclients.connection.Connection;
 import dev.fanger.simpleclients.examples.loadtest.results.ClientTestResults;
-import dev.fanger.simpleclients.examples.loadtest.results.TestResult;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -13,9 +12,10 @@ public class ClientRunner implements Runnable {
 	private ConcurrentLinkedQueue<ClientRunner> clientRunners;
 	private ConcurrentLinkedQueue<ClientRunner> finishedClientRunners;
 	private ClientExample clientExample;
-	int pingTestsToRun;
-	int actionTestsToRun;
+	private int pingTestsToRun;
+	private int actionTestsToRun;
 	private ClientTestResults clientTestResults;
+	private int clientsRunningDuringTest;
 
 	public ClientRunner(Connection connection,
 						int sessionId,
@@ -23,7 +23,8 @@ public class ClientRunner implements Runnable {
 						ConcurrentLinkedQueue<ClientRunner> finishedClientRunners,
 						int pingTestsToRun,
 						int actionTestsToRun,
-						ClientTestResults clientTestResults) {
+						ClientTestResults clientTestResults,
+						int clientsRunningDuringTest) {
 		this.connection = connection;
 		this.sessionId = sessionId;
 		this.clientRunners = clientRunners;
@@ -31,11 +32,12 @@ public class ClientRunner implements Runnable {
 		this.pingTestsToRun = pingTestsToRun;
 		this.actionTestsToRun = actionTestsToRun;
 		this.clientTestResults = clientTestResults;
+		this.clientsRunningDuringTest = clientsRunningDuringTest;
 	}
 
 	@Override
 	public void run() {
-		clientExample = new ClientExample(connection, sessionId, pingTestsToRun, actionTestsToRun, clientRunners.size());
+		clientExample = new ClientExample(connection, sessionId, pingTestsToRun, actionTestsToRun, clientsRunningDuringTest);
 		connection.shutDownClient();
 		clientTestResults.addTestResult(clientExample.getTestResult());
 		finishedClientRunners.add(this);

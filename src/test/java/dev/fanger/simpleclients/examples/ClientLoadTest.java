@@ -14,27 +14,36 @@ import java.util.concurrent.TimeUnit;
 
 public class ClientLoadTest {
 
-	private int numberOfThreadsToUse = 4;
-	private int numberOfConnectionsToTest = 16;
-	private int testsToRun = 4;
+//	private int numberOfThreadsToUse = 4;
+	private int maxConnectionsToTest = 128;// Tests are run *=2 up to max number of tests to run
 	private int pingTestsToRun = 50;
 	private int actionTestsToRun = 50;
 
-	private ConcurrentLinkedQueue<ClientRunner> clientRunners;
-	private ConcurrentLinkedQueue<ClientRunner> completedClientRunners;
-	private ExecutorService executorService;
 	private ClientTestResults clientTestResults;
 
 	public ClientLoadTest() {
-		clientRunners = new ConcurrentLinkedQueue<>();
-		completedClientRunners = new ConcurrentLinkedQueue<>();
-		executorService = Executors.newFixedThreadPool(numberOfThreadsToUse);
 		clientTestResults = new ClientTestResults();
 
-		for(int i = 0; i < testsToRun; i++) {
-			System.out.println("Adding more clients: " + (i + 1) + "/" + testsToRun);
-			addClientsAndRunTest();
+		for(int i = 1; i <= maxConnectionsToTest; i *= 2) {
+			runTests(i);
 		}
+
+		clientTestResults.calculateAndPrintTestResults();
+	}
+
+	private void runTests(int numberOfConnectionsToTest) {
+		ConcurrentLinkedQueue<ClientRunner> clientRunners;
+		ConcurrentLinkedQueue<ClientRunner> completedClientRunners;
+		ExecutorService executorService;
+
+		clientRunners = new ConcurrentLinkedQueue<>();
+		completedClientRunners = new ConcurrentLinkedQueue<>();
+		executorService = Executors.newFixedThreadPool(numberOfConnectionsToTest);
+
+//		for(int i = 0; i < testsToRun; i++) {
+//			System.out.println("Adding more clients: " + (i + 1) + "/" + testsToRun);
+			addClientsAndRunTest(numberOfConnectionsToTest, clientRunners, completedClientRunners, executorService);
+//		}
 
 		executorService.shutdown();
 
@@ -48,11 +57,13 @@ public class ClientLoadTest {
 		}
 
 		System.out.println("Finished running load test.");
-		printResultsFromTest();
-		clientTestResults.calculateAndPrintTestResults();
+//		printResultsFromTest(completedClientRunners);
 	}
 
-	private void addClientsAndRunTest() {
+	private void addClientsAndRunTest(int numberOfConnectionsToTest,
+									  ConcurrentLinkedQueue<ClientRunner> clientRunners,
+									  ConcurrentLinkedQueue<ClientRunner> completedClientRunners,
+									  ExecutorService executorService) {
 		for(int i = 0; i < numberOfConnectionsToTest; i++) {
 			Connection newConnection = Connection.newConnection("127.0.0.1", 1776);
 			ClientRunner clientRunner = new ClientRunner(newConnection,
@@ -61,7 +72,8 @@ public class ClientLoadTest {
 					completedClientRunners,
 					pingTestsToRun,
 					actionTestsToRun,
-					clientTestResults);
+					clientTestResults,
+					numberOfConnectionsToTest);
 			clientRunners.add(clientRunner);
 		}
 
@@ -70,33 +82,33 @@ public class ClientLoadTest {
 		}
 	}
 
-	private void printResultsFromTest() {
-		List<ClientRunner> sortedClientRunners = new LinkedList<>();
-		sortedClientRunners.addAll(completedClientRunners);
-		sortedClientRunners.sort((clientExample1, clientExample2) -> {
-			if(
-					(clientExample1.getClientExample().getAveragePingTimeInNanoSeconds()
-							+ clientExample1.getClientExample().getAverageActionTestTimeInNanoSeconds())
-			 	>=
-					(clientExample2.getClientExample().getAveragePingTimeInNanoSeconds()
-							+ clientExample2.getClientExample().getAverageActionTestTimeInNanoSeconds())) {
-				return 1;
-			} else {
-				return -1;
-			}
-		});
-
-		for(ClientRunner clientRunner : sortedClientRunners) {
-			ClientExample clientExample = clientRunner.getClientExample();
-			double pingAvarage = clientExample.getAveragePingTimeInNanoSeconds();
-			double actionAvarage = clientExample.getAverageActionTestTimeInNanoSeconds();
-			double totalAverage = pingAvarage + actionAvarage;
-			System.out.println(clientExample.getConnection().getId() +
-					" | ping avg: " + pingAvarage + " ns\t\t" +
-					" | action avg: " + actionAvarage + " ns\t\t" +
-					" | total avg: " + totalAverage + " ns"
-			);
-		}
-	}
+//	private void printResultsFromTest(ConcurrentLinkedQueue<ClientRunner> completedClientRunners) {
+//		List<ClientRunner> sortedClientRunners = new LinkedList<>();
+//		sortedClientRunners.addAll(completedClientRunners);
+//		sortedClientRunners.sort((clientExample1, clientExample2) -> {
+//			if(
+//					(clientExample1.getClientExample().getAveragePingTimeInNanoSeconds()
+//							+ clientExample1.getClientExample().getAverageActionTestTimeInNanoSeconds())
+//			 	>=
+//					(clientExample2.getClientExample().getAveragePingTimeInNanoSeconds()
+//							+ clientExample2.getClientExample().getAverageActionTestTimeInNanoSeconds())) {
+//				return 1;
+//			} else {
+//				return -1;
+//			}
+//		});
+//
+//		for(ClientRunner clientRunner : sortedClientRunners) {
+//			ClientExample clientExample = clientRunner.getClientExample();
+//			double pingAvarage = clientExample.getAveragePingTimeInNanoSeconds();
+//			double actionAvarage = clientExample.getAverageActionTestTimeInNanoSeconds();
+//			double totalAverage = pingAvarage + actionAvarage;
+//			System.out.println(clientExample.getConnection().getId() +
+//					" | ping avg: " + pingAvarage + " ns\t\t" +
+//					" | action avg: " + actionAvarage + " ns\t\t" +
+//					" | total avg: " + totalAverage + " ns"
+//			);
+//		}
+//	}
 
 }
