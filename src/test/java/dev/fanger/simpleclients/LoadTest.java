@@ -12,6 +12,9 @@ public class LoadTest {
 	public LoadTest() {
 		ServerExample serverExample = new ServerExample();
 		ClientLoadTest clientLoadTest = new ClientLoadTest();
+
+		serverExample.getSimpleServer().shutDownServer();
+		System.exit(0);
 	}
 
 }

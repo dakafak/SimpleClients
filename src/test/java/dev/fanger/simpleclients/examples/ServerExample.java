@@ -17,18 +17,24 @@ import static dev.fanger.simpleclients.examples.MyPayloadTypes.CONNECTION_REQUES
 
 public class ServerExample {
 
+	private SimpleServer simpleServer;
+
 	public ServerExample() {
 		ConcurrentHashMap<Integer, List<User>> sessionIdToUsers = new ConcurrentHashMap<>();
 		ConcurrentHashMap<UUID, Integer> connectionIdToSessionId = new ConcurrentHashMap<>();
 
 		ConcurrentLinkedQueue<ActionRecord> actionRecords = new ConcurrentLinkedQueue<>();
-		SimpleServer simpleServer = new SimpleServer(1776);
+		simpleServer = new SimpleServer(1776);
 
 		simpleServer.addTask(CONNECTION_REQUEST, new ConnectionTask(sessionIdToUsers, connectionIdToSessionId));
 		simpleServer.addTask(MyPayloadTypes.PING, new PingTask());
 		simpleServer.addTask(ACTION, new ActionTask(actionRecords, sessionIdToUsers, connectionIdToSessionId));
 
 		simpleServer.startListeningForConnections();
+	}
+
+	public SimpleServer getSimpleServer() {
+		return simpleServer;
 	}
 
 }

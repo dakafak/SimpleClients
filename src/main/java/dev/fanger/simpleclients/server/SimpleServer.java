@@ -37,7 +37,7 @@ public class SimpleServer {
         connectionThread.start();
     }
 
-    public void stopListeningForConnections(){
+    public void shutDownServer(){
         connectionService.setContinueRunning(false);
     }
 

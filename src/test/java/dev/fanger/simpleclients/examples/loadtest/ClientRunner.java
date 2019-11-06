@@ -42,6 +42,8 @@ public class ClientRunner implements Runnable {
 		clientTestResults.addTestResult(clientExample.getTestResult());
 		finishedClientRunners.add(this);
 		clientRunners.remove(this);
+
+		connection.shutDownClient();
 	}
 
 	public ClientExample getClientExample() {
