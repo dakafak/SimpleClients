@@ -1,15 +1,15 @@
-package dev.fanger.simpleclients.examples.loadtest;
+package dev.fanger.simpleclients.examples;
 
 import dev.fanger.simpleclients.connection.Connection;
-import dev.fanger.simpleclients.examples.MyPayloadTypes;
-import dev.fanger.simpleclients.examples.connection.ConnectionRequest;
+import dev.fanger.simpleclients.examples.Tasks.data.MyPayloadTypes;
+import dev.fanger.simpleclients.examples.Tasks.data.connection.ConnectionRequest;
 import dev.fanger.simpleclients.examples.loadtest.results.TestResult;
 import dev.fanger.simpleclients.examples.loadtest.results.TestType;
-import dev.fanger.simpleclients.examples.terminal.Action;
+import dev.fanger.simpleclients.examples.Tasks.data.terminal.Action;
 import dev.fanger.simpleclients.server.data.payload.Payload;
 
-import static dev.fanger.simpleclients.examples.MyPayloadTypes.ACTION;
-import static dev.fanger.simpleclients.examples.MyPayloadTypes.CONNECTION_REQUEST;
+import static dev.fanger.simpleclients.examples.Tasks.data.MyPayloadTypes.ACTION;
+import static dev.fanger.simpleclients.examples.Tasks.data.MyPayloadTypes.CONNECTION_REQUEST;
 
 public class ClientExample {
 

@@ -1,5 +1,7 @@
 package dev.fanger.simpleclients.connection;
 
+import dev.fanger.simpleclients.logging.Level;
+import dev.fanger.simpleclients.logging.Logger;
 import dev.fanger.simpleclients.server.data.payload.Payload;
 
 import java.io.IOException;
@@ -23,14 +25,14 @@ public class Connection {
         try {
             outputStream = new ObjectOutputStream(socket.getOutputStream());
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.log(Level.ERROR, e);
             shutDownClient();
         }
 
         try {
             inputStream = new ObjectInputStream(socket.getInputStream());
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.log(Level.ERROR, e);
             shutDownClient();
         }
     }
@@ -41,7 +43,7 @@ public class Connection {
                 outputStream.writeObject(payload);
                 outputStream.flush();
             } catch (IOException e) {
-                e.printStackTrace();
+                Logger.log(Level.DEBUG, e);
                 shutDownClient();
             }
         }
@@ -53,7 +55,7 @@ public class Connection {
                 Payload readObject = (Payload) inputStream.readObject();
                 return readObject;
             } catch (Exception e) {
-                e.printStackTrace();
+                Logger.log(Level.DEBUG, e);
                 shutDownClient();
             }
         }
@@ -70,7 +72,7 @@ public class Connection {
             try {
                 inputStream.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                Logger.log(Level.ERROR, e);
             }
         }
 
@@ -78,14 +80,14 @@ public class Connection {
             try {
                 outputStream.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                Logger.log(Level.ERROR, e);
             }
         }
 
         try {
             socket.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.log(Level.ERROR, e);
         }
 
         clientShouldBeDestroyed = true;
@@ -103,9 +105,10 @@ public class Connection {
             Connection connection = new Connection(clientSocket);
             return connection;
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.log(Level.ERROR, e);
         }
 
         return null;
     }
+
 }

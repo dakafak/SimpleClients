@@ -1,4 +1,4 @@
-package dev.fanger.simpleclients.examples.terminal;
+package dev.fanger.simpleclients.examples.Tasks.data.terminal;
 
 import java.io.Serializable;
 import java.util.UUID;

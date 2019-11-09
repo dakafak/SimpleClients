@@ -1,10 +1,11 @@
 package dev.fanger.simpleclients.examples;
 
-import dev.fanger.simpleclients.examples.connection.ConnectionTask;
-import dev.fanger.simpleclients.examples.connection.User;
-import dev.fanger.simpleclients.examples.ping.PingTask;
-import dev.fanger.simpleclients.examples.terminal.ActionRecord;
-import dev.fanger.simpleclients.examples.terminal.ActionTask;
+import dev.fanger.simpleclients.examples.Tasks.ConnectionTask;
+import dev.fanger.simpleclients.examples.Tasks.data.connection.User;
+import dev.fanger.simpleclients.examples.Tasks.PingTask;
+import dev.fanger.simpleclients.examples.Tasks.data.terminal.ActionRecord;
+import dev.fanger.simpleclients.examples.Tasks.ActionTask;
+import dev.fanger.simpleclients.logging.loggers.SystemPrintTimeLogger;
 import dev.fanger.simpleclients.server.SimpleServer;
 
 import java.util.List;
@@ -12,8 +13,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import static dev.fanger.simpleclients.examples.MyPayloadTypes.ACTION;
-import static dev.fanger.simpleclients.examples.MyPayloadTypes.CONNECTION_REQUEST;
+import static dev.fanger.simpleclients.examples.Tasks.data.MyPayloadTypes.ACTION;
+import static dev.fanger.simpleclients.examples.Tasks.data.MyPayloadTypes.CONNECTION_REQUEST;
+import static dev.fanger.simpleclients.examples.Tasks.data.MyPayloadTypes.PING;
 
 public class ServerExample {
 
@@ -27,8 +29,10 @@ public class ServerExample {
 		simpleServer = new SimpleServer(1776);
 
 		simpleServer.addTask(CONNECTION_REQUEST, new ConnectionTask(sessionIdToUsers, connectionIdToSessionId));
-		simpleServer.addTask(MyPayloadTypes.PING, new PingTask());
+		simpleServer.addTask(PING, new PingTask());
 		simpleServer.addTask(ACTION, new ActionTask(actionRecords, sessionIdToUsers, connectionIdToSessionId));
+
+		simpleServer.overrideLoggerType(SystemPrintTimeLogger.class);
 
 		simpleServer.startListeningForConnections();
 	}

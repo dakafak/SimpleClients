@@ -1,10 +1,12 @@
-package dev.fanger.simpleclients.examples.terminal;
+package dev.fanger.simpleclients.examples.Tasks;
 
 import dev.fanger.simpleclients.connection.Connection;
-import dev.fanger.simpleclients.examples.connection.User;
+import dev.fanger.simpleclients.examples.Tasks.data.connection.User;
+import dev.fanger.simpleclients.examples.Tasks.data.terminal.Action;
+import dev.fanger.simpleclients.examples.Tasks.data.terminal.ActionRecord;
 import dev.fanger.simpleclients.server.data.payload.Payload;
 import dev.fanger.simpleclients.server.data.task.Task;
-import dev.fanger.simpleclients.examples.MyPayloadTypes;
+import dev.fanger.simpleclients.examples.Tasks.data.MyPayloadTypes;
 
 import java.util.LinkedList;
 import java.util.List;
