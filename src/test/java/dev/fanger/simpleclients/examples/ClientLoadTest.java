@@ -1,7 +1,6 @@
 package dev.fanger.simpleclients.examples;
 
 import dev.fanger.simpleclients.connection.Connection;
-import dev.fanger.simpleclients.examples.loadtest.ClientRunner;
 import dev.fanger.simpleclients.examples.loadtest.results.ClientTestResults;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -11,17 +10,16 @@ import java.util.concurrent.TimeUnit;
 
 public class ClientLoadTest {
 
-//	private int numberOfThreadsToUse = 4; TODO consider adding back, this only maxes the threads handling the clients, not the server!
-	private int maxConnectionsToTest = 16;// Tests are run *=2 up to max number of tests to run
-	private int pingTestsToRun = 200;
-	private int actionTestsToRun = 200;
+	private int maxConcurrentConnections = 8;// Tests are run *=2 up to max number of tests to run
+	private int pingTestsToRun = 500;
+	private int actionTestsToRun = 500;
 
 	private ClientTestResults clientTestResults;
 
 	public ClientLoadTest() {
 		clientTestResults = new ClientTestResults();
 
-		for(int i = 1; i <= maxConnectionsToTest; i *= 2) {
+		for(int i = 1; i <= maxConcurrentConnections; i *= 2) {
 			runTests(i);
 		}
 

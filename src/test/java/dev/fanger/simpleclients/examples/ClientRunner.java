@@ -1,4 +1,4 @@
-package dev.fanger.simpleclients.examples.loadtest;
+package dev.fanger.simpleclients.examples;
 
 import dev.fanger.simpleclients.connection.Connection;
 import dev.fanger.simpleclients.examples.loadtest.results.ClientTestResults;

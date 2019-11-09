@@ -1,4 +1,4 @@
-package dev.fanger.simpleclients.examples.connection;
+package dev.fanger.simpleclients.examples.Tasks.data.connection;
 
 import java.io.Serializable;
 

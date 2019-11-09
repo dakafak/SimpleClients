@@ -1,6 +1,8 @@
 package dev.fanger.simpleclients.server.handlerthreads;
 
 import dev.fanger.simpleclients.connection.Connection;
+import dev.fanger.simpleclients.logging.Level;
+import dev.fanger.simpleclients.logging.Logger;
 import dev.fanger.simpleclients.server.data.task.Task;
 import dev.fanger.simpleclients.server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
 
@@ -40,7 +42,7 @@ public class ConnectionService implements Runnable {
                 Socket newClientSocket = serverSocket.accept();
 
                 Connection newClientConnection = new Connection(newClientSocket);
-                System.out.println("Accepted a new client: " + newClientConnection.getId());
+                Logger.log(Level.INFO, "Accepted a new client: " + newClientConnection.getId());
                 clients.put(newClientConnection.getId(), newClientConnection);
 
                 ConnectionReceiveDataHelper connectionReceiveDataHelper = new ConnectionReceiveDataHelper(newClientConnection, tasks);
@@ -49,7 +51,7 @@ public class ConnectionService implements Runnable {
                 connectionReceiveDataHelpers.put(newClientConnection.getId(), connectionReceiveDataHelper);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.log(Level.ERROR, e);
         }
     }
 

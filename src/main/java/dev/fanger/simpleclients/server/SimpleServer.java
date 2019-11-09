@@ -1,6 +1,7 @@
 package dev.fanger.simpleclients.server;
 
 import dev.fanger.simpleclients.connection.Connection;
+import dev.fanger.simpleclients.logging.Logger;
 import dev.fanger.simpleclients.server.data.payload.Payload;
 import dev.fanger.simpleclients.server.data.task.RemoveClientTask;
 import dev.fanger.simpleclients.server.data.task.Task;
@@ -62,6 +63,10 @@ public class SimpleServer {
         tasks.put(taskType, task);
     }
 
+    public void overrideLoggerType(Class<? extends Logger> loggerClassType) {
+        Logger.overrideLoggerType(loggerClassType);
+    }
+
     public ConnectionService getConnectionService() {
         return connectionService;
     }
@@ -93,4 +98,5 @@ public class SimpleServer {
     public void setPort(int port) {
         this.port = port;
     }
+
 }
