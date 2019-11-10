@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ConnectionService implements Runnable {
 
     private int port;
-    private boolean continueRunning;
+    private boolean continueRunning = true;
 
     private ServerSocket serverSocket;
 
@@ -62,10 +62,17 @@ public class ConnectionService implements Runnable {
         } catch (IOException e) {
             Logger.log(Level.ERROR, e);
         }
+
+        Logger.log(Level.INFO, "shutdown");
     }
 
-    public void setContinueRunning(boolean continueRunning) {
-        this.continueRunning = continueRunning;
+    public void shutdown() {
+        this.continueRunning = false;
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            Logger.log(Level.ERROR, e);
+        }
     }
 
     /**

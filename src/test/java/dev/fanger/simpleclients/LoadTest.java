@@ -14,7 +14,6 @@ public class LoadTest {
 		ClientLoadTest clientLoadTest = new ClientLoadTest();
 
 		serverExample.getSimpleServer().shutDownServer();
-		System.exit(0);
 	}
 
 }

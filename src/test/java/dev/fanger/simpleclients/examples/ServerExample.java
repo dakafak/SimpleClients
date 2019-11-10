@@ -20,15 +20,14 @@ public class ServerExample {
 	public ServerExample() {
 		ConcurrentHashMap<Integer, List<User>> sessionIdToUsers = new ConcurrentHashMap<>();
 		ConcurrentHashMap<UUID, Integer> connectionIdToSessionId = new ConcurrentHashMap<>();
-
 		ConcurrentLinkedQueue<ActionRecord> actionRecords = new ConcurrentLinkedQueue<>();
-		simpleServer = new SimpleServer(1776);
 
-		simpleServer.addTask(new ConnectionTask("/client/connect", sessionIdToUsers, connectionIdToSessionId));
-		simpleServer.addTask(new PingTask("/test/ping"));
-		simpleServer.addTask(new ActionTask("/test/action", actionRecords, sessionIdToUsers, connectionIdToSessionId));
-
-		simpleServer.overrideLoggerType(SystemPrintTimeLogger.class);
+		simpleServer = new SimpleServer.Builder(1776)
+				.withLoggingType(SystemPrintTimeLogger.class)
+				.withTask(new ConnectionTask("/client/connect", sessionIdToUsers, connectionIdToSessionId))
+				.withTask(new PingTask("/test/ping"))
+				.withTask(new ActionTask("/test/action", actionRecords, sessionIdToUsers, connectionIdToSessionId))
+				.build();
 
 		simpleServer.startListeningForConnections();
 	}

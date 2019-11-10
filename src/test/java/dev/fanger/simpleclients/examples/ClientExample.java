@@ -77,35 +77,9 @@ public class ClientExample {
 		testResult.getAverageTimePerTestTime().put(TestType.ACTION, averageActionTime);
 	}
 
-	public double getAveragePingTimeInNanoSeconds() {
-		return averagePingTime;
-	}
-
-	public double getAverageActionTestTimeInNanoSeconds() {
-		return averageActionTime;
-	}
-
-	public Connection getConnection() {
-		return connection;
-	}
-
-	public void setConnection(Connection connection) {
-		this.connection = connection;
-	}
-
-	public int getSessionId() {
-		return sessionId;
-	}
-
-	public void setSessionId(int sessionId) {
-		this.sessionId = sessionId;
-	}
 
 	public TestResult getTestResult() {
 		return testResult;
 	}
 
-	public void setTestResult(TestResult testResult) {
-		this.testResult = testResult;
-	}
 }
