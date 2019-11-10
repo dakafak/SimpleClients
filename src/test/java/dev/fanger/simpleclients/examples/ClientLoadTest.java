@@ -48,7 +48,7 @@ public class ClientLoadTest {
 			}
 		}
 
-		System.out.println("Finished running load test.");
+		System.out.println("Finished running load test for: " + numberOfConnectionsToTest + " connections");
 	}
 
 	private void addClientsAndRunTest(int numberOfConnectionsToTest,

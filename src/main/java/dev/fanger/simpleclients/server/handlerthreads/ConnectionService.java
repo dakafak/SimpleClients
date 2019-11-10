@@ -21,12 +21,12 @@ public class ConnectionService implements Runnable {
 
     private ConcurrentHashMap<UUID, Connection> clients;
     private ConcurrentHashMap<UUID, ConnectionReceiveDataHelper> connectionReceiveDataHelpers;
-    private ConcurrentHashMap<Enum, Task> tasks;
+    private ConcurrentHashMap<String, Task> tasks;
 
     public ConnectionService(int port,
                              ConcurrentHashMap<UUID, Connection> clients,
                              ConcurrentHashMap<UUID, ConnectionReceiveDataHelper> connectionReceiveDataHelpers,
-                             ConcurrentHashMap<Enum, Task> tasks){
+                             ConcurrentHashMap<String, Task> tasks){
         this.port = port;
         this.clients = clients;
         this.connectionReceiveDataHelpers = connectionReceiveDataHelpers;
@@ -41,14 +41,23 @@ public class ConnectionService implements Runnable {
             while(continueRunning){
                 Socket newClientSocket = serverSocket.accept();
 
+                // Setup new connection with newly accepted client
                 Connection newClientConnection = new Connection(newClientSocket);
                 Logger.log(Level.INFO, "Accepted a new client: " + newClientConnection.getId());
                 clients.put(newClientConnection.getId(), newClientConnection);
 
+                // Setup data helper for new connection
                 ConnectionReceiveDataHelper connectionReceiveDataHelper = new ConnectionReceiveDataHelper(newClientConnection, tasks);
                 Thread connectionReceiveDataHelperThread = new Thread(connectionReceiveDataHelper);
                 connectionReceiveDataHelperThread.start();
                 connectionReceiveDataHelpers.put(newClientConnection.getId(), connectionReceiveDataHelper);
+
+                // Add watcher to shut down and remove clients after they've completed running
+                Thread connectionWatcherThread = new Thread(new ConnectionWatcher(newClientConnection.getId(), connectionReceiveDataHelperThread));
+                connectionWatcherThread.start();
+
+                // Log status of total clients so far
+                Logger.log(Level.DEBUG, "Current client list size: " + clients.keySet().size());
             }
         } catch (IOException e) {
             Logger.log(Level.ERROR, e);
@@ -57,6 +66,49 @@ public class ConnectionService implements Runnable {
 
     public void setContinueRunning(boolean continueRunning) {
         this.continueRunning = continueRunning;
+    }
+
+    /**
+     * Used to guarantee the shutdown of connections and data helper threads
+     * This is used in an additional thread that waits until the ConnectionReceiveDataHelperThread completes
+     *  but using Thread.join()
+     */
+    private class ConnectionWatcher implements Runnable {
+
+        private UUID connectionId;
+        private Thread connectionReceiveDataHelperThread;
+
+        public ConnectionWatcher(UUID connectionId,
+                                 Thread connectionReceiveDataHelperThread) {
+            this.connectionId = connectionId;
+            this.connectionReceiveDataHelperThread = connectionReceiveDataHelperThread;
+        }
+
+        @Override
+        public void run() {
+            try {
+                // Wait for the connection to disconnect
+                connectionReceiveDataHelperThread.join();
+            } catch (InterruptedException e) {
+                Logger.log(Level.DEBUG, e);
+            } finally {
+                if(connectionId != null) {
+                    Logger.log(Level.INFO, "Disconnected client: " + connectionId);
+
+                    if (clients != null && clients.containsKey(connectionId)) {
+                        if(clients.get(connectionId) != null) {
+                            clients.get(connectionId).shutDownClient();
+                        }
+                        clients.remove(connectionId);
+                    }
+
+                    if(connectionReceiveDataHelpers != null && connectionReceiveDataHelpers.containsKey(connectionId)) {
+                        connectionReceiveDataHelpers.remove(connectionId);
+                    }
+                }
+            }
+        }
+
     }
 
 }

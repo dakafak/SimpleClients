@@ -6,16 +6,12 @@ import dev.fanger.simpleclients.examples.Tasks.PingTask;
 import dev.fanger.simpleclients.examples.Tasks.data.terminal.ActionRecord;
 import dev.fanger.simpleclients.examples.Tasks.ActionTask;
 import dev.fanger.simpleclients.logging.loggers.SystemPrintTimeLogger;
-import dev.fanger.simpleclients.server.SimpleServer;
+import dev.fanger.simpleclients.SimpleServer;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import static dev.fanger.simpleclients.examples.Tasks.data.MyPayloadTypes.ACTION;
-import static dev.fanger.simpleclients.examples.Tasks.data.MyPayloadTypes.CONNECTION_REQUEST;
-import static dev.fanger.simpleclients.examples.Tasks.data.MyPayloadTypes.PING;
 
 public class ServerExample {
 
@@ -28,9 +24,9 @@ public class ServerExample {
 		ConcurrentLinkedQueue<ActionRecord> actionRecords = new ConcurrentLinkedQueue<>();
 		simpleServer = new SimpleServer(1776);
 
-		simpleServer.addTask(CONNECTION_REQUEST, new ConnectionTask(sessionIdToUsers, connectionIdToSessionId));
-		simpleServer.addTask(PING, new PingTask());
-		simpleServer.addTask(ACTION, new ActionTask(actionRecords, sessionIdToUsers, connectionIdToSessionId));
+		simpleServer.addTask(new ConnectionTask("/client/connect", sessionIdToUsers, connectionIdToSessionId));
+		simpleServer.addTask(new PingTask("/test/ping"));
+		simpleServer.addTask(new ActionTask("/test/action", actionRecords, sessionIdToUsers, connectionIdToSessionId));
 
 		simpleServer.overrideLoggerType(SystemPrintTimeLogger.class);
 

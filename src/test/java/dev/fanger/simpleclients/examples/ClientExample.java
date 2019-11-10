@@ -1,15 +1,11 @@
 package dev.fanger.simpleclients.examples;
 
 import dev.fanger.simpleclients.connection.Connection;
-import dev.fanger.simpleclients.examples.Tasks.data.MyPayloadTypes;
 import dev.fanger.simpleclients.examples.Tasks.data.connection.ConnectionRequest;
 import dev.fanger.simpleclients.examples.loadtest.results.TestResult;
 import dev.fanger.simpleclients.examples.loadtest.results.TestType;
 import dev.fanger.simpleclients.examples.Tasks.data.terminal.Action;
 import dev.fanger.simpleclients.server.data.payload.Payload;
-
-import static dev.fanger.simpleclients.examples.Tasks.data.MyPayloadTypes.ACTION;
-import static dev.fanger.simpleclients.examples.Tasks.data.MyPayloadTypes.CONNECTION_REQUEST;
 
 public class ClientExample {
 
@@ -34,7 +30,7 @@ public class ClientExample {
 
 	private void connectToServer() {
 		ConnectionRequest connectionRequest = new ConnectionRequest("Test client " + connection.getId(), sessionId);
-		connection.sendData(new Payload(connectionRequest, CONNECTION_REQUEST));
+		connection.sendData(new Payload(connectionRequest, "/client/connect"));
 	}
 
 	long totalPingTestRunTime;
@@ -47,7 +43,7 @@ public class ClientExample {
 		for(int i = 0; i < pingTestsToRun; i++) {
 			long startOfPingTest = System.nanoTime();
 
-			Payload<String> testPayload = new Payload<>("Test Ping Payload ", MyPayloadTypes.PING);
+			Payload<String> testPayload = new Payload<>("Test Ping Payload ", "/test/ping");
 			connection.sendData(testPayload);
 			connection.retrieveData();
 
@@ -57,10 +53,6 @@ public class ClientExample {
 
 		averagePingTime = totalPingTestRunTime / (double) pingTestsToRun;
 		testResult.getAverageTimePerTestTime().put(TestType.PING, averagePingTime);
-		System.out.println("Finished ping test for: " + connection.getId());
-
-		//TODO update this to store run time and number of clients to a Results.java object in a map for client id
-		//TODO also update each type of Test within load test. To simplify the run time and average run time data
 	}
 
 	long totalActionTestRunTime;
@@ -73,17 +65,16 @@ public class ClientExample {
 		for(int i = 0; i < actionTestsToRun; i++) {
 			long startOfActionTest = System.nanoTime();
 
-			Payload<Action> newPayload = new Payload<>(Action.values()[(int)Math.floor(Math.random() * Action.values().length)], ACTION);
+			Payload<Action> newPayload = new Payload<>(Action.values()[(int)Math.floor(Math.random() * Action.values().length)], "/test/action");
 			connection.sendData(newPayload);
 			connection.retrieveData();
 
 			long endOfActionTest = System.nanoTime();
-			totalActionTestRunTime += endOfActionTest - startOfActionTest;
+			totalActionTestRunTime += (endOfActionTest - startOfActionTest);
 		}
 
 		averageActionTime = totalActionTestRunTime / (double) actionTestsToRun;
 		testResult.getAverageTimePerTestTime().put(TestType.ACTION, averageActionTime);
-		System.out.println("Finished action test for: " + connection.getId());
 	}
 
 	public double getAveragePingTimeInNanoSeconds() {
