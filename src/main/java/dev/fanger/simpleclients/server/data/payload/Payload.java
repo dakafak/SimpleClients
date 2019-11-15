@@ -5,11 +5,11 @@ import java.io.Serializable;
 public class Payload<T> implements Serializable {
 
     private T data;
-    private Enum payloadType;
+    private String payloadUrl;
 
-    public Payload(T data, Enum payloadType){
+    public Payload(T data, String payloadUrl){
         this.data = data;
-        this.payloadType = payloadType;
+        this.payloadUrl = payloadUrl;
     }
 
     @Override
@@ -17,8 +17,8 @@ public class Payload<T> implements Serializable {
         return data.toString();
     }
 
-    public Enum getPayloadType() {
-        return payloadType;
+    public String getPayloadUrl() {
+        return payloadUrl;
     }
 
     public T getData() {
@@ -29,8 +29,8 @@ public class Payload<T> implements Serializable {
         this.data = data;
     }
 
-    public void setPayloadType(Enum payloadType) {
-        this.payloadType = payloadType;
+    public void setPayloadUrl(String payloadUrl) {
+        this.payloadUrl = payloadUrl;
     }
 
 }
