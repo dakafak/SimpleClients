@@ -1,6 +1,5 @@
-package dev.fanger.simpleclients.examples;
+package dev.fanger.simpleclients.examples.client;
 
-import dev.fanger.simpleclients.connection.Connection;
 import dev.fanger.simpleclients.examples.loadtest.results.ClientTestResults;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -11,8 +10,6 @@ import java.util.concurrent.TimeUnit;
 public class ClientLoadTest {
 
 	private int maxConcurrentConnections = 8;// Tests are run *=2 up to max number of tests to run
-	private int pingTestsToRun = 500;
-	private int actionTestsToRun = 500;
 
 	private ClientTestResults clientTestResults;
 
@@ -48,7 +45,7 @@ public class ClientLoadTest {
 			}
 		}
 
-		System.out.println("Finished running load test.");
+		System.out.println("Finished running load test for: " + numberOfConnectionsToTest + " connections");
 	}
 
 	private void addClientsAndRunTest(int numberOfConnectionsToTest,
@@ -56,13 +53,9 @@ public class ClientLoadTest {
 									  ConcurrentLinkedQueue<ClientRunner> completedClientRunners,
 									  ExecutorService executorService) {
 		for(int i = 0; i < numberOfConnectionsToTest; i++) {
-			Connection newConnection = Connection.newConnection("127.0.0.1", 1776);
-			ClientRunner clientRunner = new ClientRunner(newConnection,
-					i,
+			ClientRunner clientRunner = new ClientRunner(i,
 					clientRunners,
 					completedClientRunners,
-					pingTestsToRun,
-					actionTestsToRun,
 					clientTestResults,
 					numberOfConnectionsToTest);
 			clientRunners.add(clientRunner);
