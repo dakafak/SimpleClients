@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SimpleServer extends SimpleClientManager {
+public class SimpleServer extends TaskedService {
 
     private ConnectionService connectionService;
 
@@ -21,10 +21,10 @@ public class SimpleServer extends SimpleClientManager {
     private int port;
 
     private SimpleServer(Builder builder) {
+        this.port = builder.getPort();
         clients = new ConcurrentHashMap<>();
         connectionReceiveDataHelpers = new ConcurrentHashMap<>();
 
-        this.port = builder.getPort();
         overrideLoggerType(builder.getLoggerClassType());
 
         for(Task task : builder.getTasks()) {
@@ -32,18 +32,33 @@ public class SimpleServer extends SimpleClientManager {
         }
     }
 
+    /**
+     * Starts the connection service thread. The connection service thread will actively listen to connections and
+     * immediately add them to the clients {@link ConcurrentHashMap} and setup {@link ConnectionReceiveDataHelper}
+     * for each client.
+     */
     public void startListeningForConnections(){
         connectionService = new ConnectionService(port, clients, connectionReceiveDataHelpers, getTasks());
         Thread connectionThread = new Thread(connectionService);
         connectionThread.start();
     }
 
+    /**
+     * Shuts down the {@link ConnectionService} for this server
+     */
     public void shutDownServer(){
         connectionService.shutdown();
     }
 
+    /**
+     * Sends a payload to a specified client {@link Connection}
+     *
+     * @param connection
+     * @param payload
+     * @return
+     */
     public boolean sendPayloadToClient(Connection connection, Payload payload){
-        if(!connection.clientShouldBeDestroyed()){
+        if(!connection.connectionShouldBeDestroyed()){
             connection.sendData(payload);
             return true;
         }
@@ -51,6 +66,10 @@ public class SimpleServer extends SimpleClientManager {
         return false;
     }
 
+    /**
+     * @param id
+     * @return {@link Connection} for the specified UUID
+     */
     public Connection getClient(UUID id){
         if(id != null && clients.containsKey(id)) {
             return clients.get(id);
@@ -59,6 +78,11 @@ public class SimpleServer extends SimpleClientManager {
         return null;
     }
 
+    /**
+     * Overrides the SimpleClients {@link Logger} with the specified type
+     *
+     * @param loggerClassType
+     */
     private void overrideLoggerType(Class<? extends Logger> loggerClassType) {
         Logger.overrideLoggerType(loggerClassType);
     }

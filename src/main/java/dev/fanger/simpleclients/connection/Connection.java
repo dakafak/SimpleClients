@@ -3,6 +3,7 @@ package dev.fanger.simpleclients.connection;
 import dev.fanger.simpleclients.logging.Level;
 import dev.fanger.simpleclients.logging.Logger;
 import dev.fanger.simpleclients.server.data.payload.Payload;
+import dev.fanger.simpleclients.server.data.task.Task;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -17,7 +18,7 @@ public class Connection {
     private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
     private UUID id = UUID.randomUUID();
-    private boolean clientShouldBeDestroyed;
+    private boolean connectionShouldBeDestroyed;
 
     public Connection(Socket socket){
         this.socket = socket;
@@ -26,48 +27,61 @@ public class Connection {
             outputStream = new ObjectOutputStream(socket.getOutputStream());
         } catch (IOException e) {
             Logger.log(Level.ERROR, e);
-            shutDownClient();
+            shutDownConnection();
         }
 
         try {
             inputStream = new ObjectInputStream(socket.getInputStream());
         } catch (IOException e) {
             Logger.log(Level.ERROR, e);
-            shutDownClient();
+            shutDownConnection();
         }
     }
 
+    /**
+     * Send specified {@link Payload}
+     * synchronized for passive {@link Task} or for forceful {@link Payload} send
+     *
+     * @param payload
+     */
     synchronized public void sendData(Payload payload){
-        if(!clientShouldBeDestroyed) {
+        if(!connectionShouldBeDestroyed) {
             try {
                 outputStream.writeObject(payload);
                 outputStream.flush();
             } catch (IOException e) {
                 Logger.log(Level.DEBUG, e);
-                shutDownClient();
+                shutDownConnection();
             }
         }
     }
 
+    /**
+     * Wait for data. You cannot try retrieving data if you also have passive tasks checking for data
+     * They will block each other
+     *
+     * @return
+     */
     public Payload retrieveData(){
-        if(!clientShouldBeDestroyed) {
+        if(!connectionShouldBeDestroyed) {
             try {
                 Payload readObject = (Payload) inputStream.readObject();
                 return readObject;
             } catch (Exception e) {
                 Logger.log(Level.DEBUG, e);
-                shutDownClient();
+                shutDownConnection();
             }
         }
 
         return null;
     }
 
-    public boolean clientShouldBeDestroyed() {
-        return clientShouldBeDestroyed;
-    }
+    /**
+     * Shutdown connection
+     */
+    public void shutDownConnection() {
+        connectionShouldBeDestroyed = true;
 
-    public void shutDownClient() {
         if(inputStream != null) {
             try {
                 inputStream.close();
@@ -89,15 +103,16 @@ public class Connection {
         } catch (IOException e) {
             Logger.log(Level.ERROR, e);
         }
-
-        clientShouldBeDestroyed = true;
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public static Connection newConnection(String hostname, int port) {
+    /**
+     * Creates a new connection for the specified hostname and port
+     *
+     * @param hostname
+     * @param port
+     * @return
+     */
+    public static Connection newClientConnection(String hostname, int port) {
         Socket clientSocket = new Socket();
 
         try {
@@ -109,6 +124,22 @@ public class Connection {
         }
 
         return null;
+    }
+
+    /**
+     *
+     * @return true if this connection should be shutdown
+     */
+    public boolean connectionShouldBeDestroyed() {
+        return connectionShouldBeDestroyed;
+    }
+
+    /**
+     *
+     * @return UUID for this connection
+     */
+    public UUID getId() {
+        return id;
     }
 
 }

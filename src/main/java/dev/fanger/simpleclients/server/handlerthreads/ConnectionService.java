@@ -66,6 +66,9 @@ public class ConnectionService implements Runnable {
         Logger.log(Level.INFO, "shutdown");
     }
 
+    /**
+     * Shuts down the server connection service
+     */
     public void shutdown() {
         this.continueRunning = false;
         try {
@@ -77,8 +80,8 @@ public class ConnectionService implements Runnable {
 
     /**
      * Used to guarantee the shutdown of connections and data helper threads
-     * This is used in an additional thread that waits until the ConnectionReceiveDataHelperThread completes
-     *  but using Thread.join()
+     * This is used in an additional thread that waits until the {@link #connectionReceiveDataHelperThread} completes
+     *  but using {@link Thread[#join()]}
      */
     private class ConnectionWatcher implements Runnable {
 
@@ -104,7 +107,7 @@ public class ConnectionService implements Runnable {
 
                     if (clients != null && clients.containsKey(connectionId)) {
                         if(clients.get(connectionId) != null) {
-                            clients.get(connectionId).shutDownClient();
+                            clients.get(connectionId).shutDownConnection();
                         }
                         clients.remove(connectionId);
                     }

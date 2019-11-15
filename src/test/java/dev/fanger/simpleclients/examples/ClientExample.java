@@ -1,82 +1,57 @@
 package dev.fanger.simpleclients.examples;
 
-import dev.fanger.simpleclients.connection.Connection;
-import dev.fanger.simpleclients.examples.Tasks.data.connection.ConnectionRequest;
+import dev.fanger.simpleclients.SimpleClient;
+import dev.fanger.simpleclients.examples.loadtest.Test;
+import dev.fanger.simpleclients.examples.server.connection.ConnectionRequest;
 import dev.fanger.simpleclients.examples.loadtest.results.TestResult;
-import dev.fanger.simpleclients.examples.loadtest.results.TestType;
-import dev.fanger.simpleclients.examples.Tasks.data.terminal.Action;
+import dev.fanger.simpleclients.examples.loadtest.TestType;
 import dev.fanger.simpleclients.server.data.payload.Payload;
 
 public class ClientExample {
 
-	private Connection connection;
+	private SimpleClient simpleClient;
 	private int sessionId;
 	private TestResult testResult;
 
-	public ClientExample(Connection connection,
-						 int sessionId,
-						 int pingTestsToRun,
-						 int actionTestsToRun,
+	public ClientExample(int sessionId,
 						 int currentConnections) {
-		this.connection = connection;
 		this.sessionId = sessionId;
-
+		simpleClient = new SimpleClient("127.0.0.1", 1776);
 		testResult = new TestResult(currentConnections);
+	}
 
+	public void runTests() {
 		connectToServer();
-		runPingTests(pingTestsToRun);
-		sendActions(actionTestsToRun);
+
+		for(TestType testType : TestType.values()) {
+			runTest(testType.getTest(), testType);
+		}
+	}
+
+	public void shutDownClientExample() {
+		simpleClient.shutDownClient();
 	}
 
 	private void connectToServer() {
-		ConnectionRequest connectionRequest = new ConnectionRequest("Test client " + connection.getId(), sessionId);
-		connection.sendData(new Payload(connectionRequest, "/client/connect"));
+		ConnectionRequest connectionRequest = new ConnectionRequest("Test client " + simpleClient.getId(), sessionId);
+		simpleClient.sendData(new Payload(connectionRequest, "/client/connect"));
 	}
 
-	long totalPingTestRunTime;
-	double averagePingTime;
+	private void runTest(Test test, TestType testType) {
+		long totalIterationRunTime = 0;
 
-	private void runPingTests(int pingTestsToRun) {
-		totalPingTestRunTime = 0;
-		averagePingTime = 0;
-
-		for(int i = 0; i < pingTestsToRun; i++) {
-			long startOfPingTest = System.nanoTime();
-
-			Payload<String> testPayload = new Payload<>("Test Ping Payload ", "/test/ping");
-			connection.sendData(testPayload);
-			connection.retrieveData();
-
-			long endOfPingTest = System.nanoTime();
-			totalPingTestRunTime += endOfPingTest - startOfPingTest;
-		}
-
-		averagePingTime = totalPingTestRunTime / (double) pingTestsToRun;
-		testResult.getAverageTimePerTestTime().put(TestType.PING, averagePingTime);
-	}
-
-	long totalActionTestRunTime;
-	double averageActionTime;
-
-	private void sendActions(int actionTestsToRun) {
-		totalActionTestRunTime = 0;
-		averageActionTime = 0;
-
-		for(int i = 0; i < actionTestsToRun; i++) {
+		for(int i = 0; i < testType.getTestsToRun(); i++) {
 			long startOfActionTest = System.nanoTime();
 
-			Payload<Action> newPayload = new Payload<>(Action.values()[(int)Math.floor(Math.random() * Action.values().length)], "/test/action");
-			connection.sendData(newPayload);
-			connection.retrieveData();
+			test.runTest(simpleClient);
 
 			long endOfActionTest = System.nanoTime();
-			totalActionTestRunTime += (endOfActionTest - startOfActionTest);
+			totalIterationRunTime += (endOfActionTest - startOfActionTest);
 		}
 
-		averageActionTime = totalActionTestRunTime / (double) actionTestsToRun;
-		testResult.getAverageTimePerTestTime().put(TestType.ACTION, averageActionTime);
+		double averageIterationTime = totalIterationRunTime / (double) testType.getTestsToRun();
+		testResult.getAverageTimePerTestTime().put(testType, averageIterationTime);
 	}
-
 
 	public TestResult getTestResult() {
 		return testResult;

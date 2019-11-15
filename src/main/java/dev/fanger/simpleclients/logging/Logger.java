@@ -31,7 +31,7 @@ public abstract class Logger {
     }
 
     /**
-     * Log a given exception at a specific level
+     * Log a given {@link Exception} at a specific level
      *
      * @param level
      * @param e
@@ -61,7 +61,7 @@ public abstract class Logger {
     }
 
     /**
-     * Prepares the internal logger to whichever LOGGER_CLASS_TYPE is currently set
+     * Prepares the internal logger to whichever {@link #LOGGER_CLASS_TYPE} is currently set
      *
      */
     private static void setupInternalLogger() {

@@ -1,10 +1,10 @@
 package dev.fanger.simpleclients.examples;
 
-import dev.fanger.simpleclients.examples.Tasks.ConnectionTask;
-import dev.fanger.simpleclients.examples.Tasks.data.connection.User;
-import dev.fanger.simpleclients.examples.Tasks.PingTask;
-import dev.fanger.simpleclients.examples.Tasks.data.terminal.ActionRecord;
-import dev.fanger.simpleclients.examples.Tasks.ActionTask;
+import dev.fanger.simpleclients.examples.server.tasks.ConnectionTask;
+import dev.fanger.simpleclients.examples.server.connection.User;
+import dev.fanger.simpleclients.examples.server.tasks.PingTask;
+import dev.fanger.simpleclients.examples.server.data.ActionRecord;
+import dev.fanger.simpleclients.examples.server.tasks.ActionTask;
 import dev.fanger.simpleclients.logging.loggers.SystemPrintTimeLogger;
 import dev.fanger.simpleclients.SimpleServer;
 
@@ -32,8 +32,8 @@ public class ServerExample {
 		simpleServer.startListeningForConnections();
 	}
 
-	public SimpleServer getSimpleServer() {
-		return simpleServer;
+	public void shutdownServer() {
+		simpleServer.shutDownServer();
 	}
 
 }

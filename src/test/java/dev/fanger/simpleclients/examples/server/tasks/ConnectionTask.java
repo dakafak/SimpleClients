@@ -1,8 +1,8 @@
-package dev.fanger.simpleclients.examples.Tasks;
+package dev.fanger.simpleclients.examples.server.tasks;
 
 import dev.fanger.simpleclients.connection.Connection;
-import dev.fanger.simpleclients.examples.Tasks.data.connection.ConnectionRequest;
-import dev.fanger.simpleclients.examples.Tasks.data.connection.User;
+import dev.fanger.simpleclients.examples.server.connection.ConnectionRequest;
+import dev.fanger.simpleclients.examples.server.connection.User;
 import dev.fanger.simpleclients.server.data.payload.Payload;
 import dev.fanger.simpleclients.server.data.task.Task;
 

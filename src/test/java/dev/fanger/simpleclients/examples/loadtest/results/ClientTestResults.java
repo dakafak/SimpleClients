@@ -1,5 +1,7 @@
 package dev.fanger.simpleclients.examples.loadtest.results;
 
+import dev.fanger.simpleclients.examples.loadtest.TestType;
+
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
