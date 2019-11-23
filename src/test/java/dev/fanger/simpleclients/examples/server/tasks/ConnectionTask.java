@@ -16,10 +16,8 @@ public class ConnectionTask extends Task {
 	private ConcurrentHashMap<Integer, List<User>> sessionIdToUsers;
 	private ConcurrentHashMap<UUID, Integer> connectionIdToSessionId;
 
-	public ConnectionTask(String url,
-						  ConcurrentHashMap<Integer, List<User>> sessionIdToUsers,
+	public ConnectionTask(ConcurrentHashMap<Integer, List<User>> sessionIdToUsers,
 						  ConcurrentHashMap<UUID, Integer> connectionIdToSessionId) {
-		super(url);
 		this.sessionIdToUsers = sessionIdToUsers;
 		this.connectionIdToSessionId = connectionIdToSessionId;
 	}

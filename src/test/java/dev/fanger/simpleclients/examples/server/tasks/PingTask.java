@@ -6,10 +6,6 @@ import dev.fanger.simpleclients.server.data.task.Task;
 
 public class PingTask extends Task {
 
-    public PingTask(String url) {
-        super(url);
-    }
-
     @Override
     public void executeTask(Connection connection, Payload payload) {
         connection.sendData(payload);

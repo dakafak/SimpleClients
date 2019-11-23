@@ -19,11 +19,9 @@ public class ActionTask extends Task {
 	private ConcurrentHashMap<Integer, List<User>> sessionIdToUsers;
 	private ConcurrentHashMap<UUID, Integer> connectionIdToSessionId;
 
-	public ActionTask(String url,
-					  ConcurrentLinkedQueue<ActionRecord> actionRecords,
+	public ActionTask(ConcurrentLinkedQueue<ActionRecord> actionRecords,
 					  ConcurrentHashMap<Integer, List<User>> sessionIdToUsers,
 					  ConcurrentHashMap<UUID, Integer> connectionIdToSessionId) {
-		super(url);
 		this.actionRecords = actionRecords;
 		this.sessionIdToUsers = sessionIdToUsers;
 		this.connectionIdToSessionId = connectionIdToSessionId;

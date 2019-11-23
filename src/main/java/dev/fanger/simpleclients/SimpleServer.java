@@ -111,7 +111,8 @@ public class SimpleServer extends TaskedService {
             return this;
         }
 
-        public Builder withTask(Task task) {
+        public Builder withTask(String taskUrl, Task task) {
+            task.setUrl(taskUrl);
             tasks.add(task);
             return this;
         }
