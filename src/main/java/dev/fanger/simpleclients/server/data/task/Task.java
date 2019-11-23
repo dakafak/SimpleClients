@@ -8,10 +8,6 @@ public abstract class Task {
 
     private String url;
 
-    public Task(String url) {
-        this.url = url;
-    }
-
     /**
      * When a payload is retrieved by {@link ConnectionReceiveDataHelper} it will call this method immediately
      *
@@ -19,6 +15,10 @@ public abstract class Task {
      * @param payload
      */
     public abstract void executeTask(Connection connection, Payload payload);
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
     public String getUrl() {
         return url;

@@ -15,25 +15,25 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ServerExample {
 
-	private SimpleServer simpleServer;
+    private SimpleServer simpleServer;
 
-	public ServerExample() {
-		ConcurrentHashMap<Integer, List<User>> sessionIdToUsers = new ConcurrentHashMap<>();
-		ConcurrentHashMap<UUID, Integer> connectionIdToSessionId = new ConcurrentHashMap<>();
-		ConcurrentLinkedQueue<ActionRecord> actionRecords = new ConcurrentLinkedQueue<>();
+    public ServerExample() {
+        ConcurrentHashMap<Integer, List<User>> sessionIdToUsers = new ConcurrentHashMap<>();
+        ConcurrentHashMap<UUID, Integer> connectionIdToSessionId = new ConcurrentHashMap<>();
+        ConcurrentLinkedQueue<ActionRecord> actionRecords = new ConcurrentLinkedQueue<>();
 
-		simpleServer = new SimpleServer.Builder(1776)
-				.withLoggingType(SystemPrintTimeLogger.class)
-				.withTask(new ConnectionTask("/client/connect", sessionIdToUsers, connectionIdToSessionId))
-				.withTask(new PingTask("/test/ping"))
-				.withTask(new ActionTask("/test/action", actionRecords, sessionIdToUsers, connectionIdToSessionId))
-				.build();
+        simpleServer = new SimpleServer.Builder(1776)
+                .withLoggingType(SystemPrintTimeLogger.class)
+                .withTask("/client/connect", new ConnectionTask(sessionIdToUsers, connectionIdToSessionId))
+                .withTask("/test/ping", new PingTask())
+                .withTask("/test/action", new ActionTask(actionRecords, sessionIdToUsers, connectionIdToSessionId))
+                .build();
 
-		simpleServer.startListeningForConnections();
-	}
+        simpleServer.startListeningForConnections();
+    }
 
-	public void shutdownServer() {
-		simpleServer.shutDownServer();
-	}
+    public void shutdownServer() {
+        simpleServer.shutDownServer();
+    }
 
 }
