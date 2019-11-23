@@ -11,7 +11,6 @@ public class ServerExample {
 
     public ServerExample() {
         SimpleServer simpleServer = new SimpleServer.Builder(1776)
-                .withLoggingType(SystemPrintTimeLogger.class)
                 .withTask("/test/ping", new PingTask())
                 .build();
 
