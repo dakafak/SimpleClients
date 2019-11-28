@@ -11,7 +11,12 @@ public class ServerExample {
 
     public ServerExample() {
         SimpleServer simpleServer = new SimpleServer.Builder(1776)
+                .withLoggingType(SystemPrintTimeLogger.class)
+                .withTask("/client/connect", new ConnectionTask(sessionIdToUsers, connectionIdToSessionId))
                 .withTask("/test/ping", new PingTask())
+                .withTask("/test/action", new ActionTask(actionRecords, sessionIdToUsers, connectionIdToSessionId))
+                .withTask("/test/bounce/1", new BounceTask1())
+                .withTask("/test/bounce/3", new BounceTask3())
                 .build();
 
         simpleServer.startListeningForConnections();
@@ -42,11 +47,15 @@ In the above `PingTask`, data is sent directly back to the client from which the
 ### How do I send data to the server?
 By creating a SimpleClient! :)
 ```java
-public class ClientExample {
+public class SimpleClientExample {
 
-    public ClientExample() {
-        SimpleClient simpleClient = new SimpleClient("127.0.0.1", 1776);
-        simpleClient.sendData(new Payload<>("Test Ping Payload ", "/test/ping"));
+    public SimpleClientExample() {
+        SimpleClient simpleClient = new SimpleClient.Builder("127.0.0.1")
+                .withPort(1776)
+                .withTask("/test/bounce/2", new BounceTask2())
+                .withTask("/test/bounce/4", new BounceTask4(completedBounceTest))
+                .build();
+        simpleClient.sendData(new Payload("Hey run the test", "/test/bounce/1"));
     }
     
 }
@@ -54,6 +63,22 @@ public class ClientExample {
 That's it! Just define your ip and port, then send whatever data you'd like to the server. The `Payload` will contain 
 both the data you're sending as well as the endpoint you'd like to hit. The server will use this information to 
 determine what task to use to handle your request.
+
+### What if I want to manually retrieve data?
+You can do so with a TraditionalClient!
+```java
+public class TraditionClientExample {
+
+    public TraditionClientExample() {
+        TraditionalClient traditionalClient = new TraditionalClient.Builder("127.0.0.1")
+                .withPort(1776)
+                .build();
+        traditionalClient.sendData(new Payload<>("Test Ping Payload ", "/test/ping"));
+        System.out.println(traditionalClient.retrieveData());
+    }
+    
+}
+```
 
 ### What do I do when I'm done? How do I shut down the server and client?
 For the server:

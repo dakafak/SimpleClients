@@ -1,22 +1,25 @@
 package dev.fanger.simpleclients.examples;
 
-import dev.fanger.simpleclients.SimpleClient;
+import dev.fanger.simpleclients.TraditionalClient;
 import dev.fanger.simpleclients.examples.loadtest.Test;
 import dev.fanger.simpleclients.examples.server.connection.ConnectionRequest;
 import dev.fanger.simpleclients.examples.loadtest.results.TestResult;
 import dev.fanger.simpleclients.examples.loadtest.TestType;
 import dev.fanger.simpleclients.server.data.payload.Payload;
 
-public class ClientExample {
+public class TraditionClientExample {
 
-    private SimpleClient simpleClient;
+    private TraditionalClient traditionalClient;
     private int sessionId;
     private TestResult testResult;
 
-    public ClientExample(int sessionId,
-                         int currentConnections) {
+    public TraditionClientExample(int sessionId,
+                                  int currentConnections) {
         this.sessionId = sessionId;
-        simpleClient = new SimpleClient("127.0.0.1", 1776);
+        traditionalClient = new TraditionalClient.Builder("127.0.0.1")
+                .withPort(1776)
+                .build();
+
         testResult = new TestResult(currentConnections);
     }
 
@@ -29,12 +32,12 @@ public class ClientExample {
     }
 
     public void shutDownClientExample() {
-        simpleClient.shutDownClient();
+        traditionalClient.shutDownClient();
     }
 
     private void connectToServer() {
-        ConnectionRequest connectionRequest = new ConnectionRequest("Test client " + simpleClient.getId(), sessionId);
-        simpleClient.sendData(new Payload(connectionRequest, "/client/connect"));
+        ConnectionRequest connectionRequest = new ConnectionRequest("Test client " + traditionalClient.getId(), sessionId);
+        traditionalClient.sendData(new Payload(connectionRequest, "/client/connect"));
     }
 
     private void runTest(Test test, TestType testType) {
@@ -43,7 +46,7 @@ public class ClientExample {
         for(int i = 0; i < testType.getTestsToRun(); i++) {
             long startOfActionTest = System.nanoTime();
 
-            test.runTest(simpleClient);
+            test.runTest(traditionalClient);
 
             long endOfActionTest = System.nanoTime();
             totalIterationRunTime += (endOfActionTest - startOfActionTest);

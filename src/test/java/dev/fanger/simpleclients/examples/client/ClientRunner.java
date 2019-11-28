@@ -1,6 +1,6 @@
 package dev.fanger.simpleclients.examples.client;
 
-import dev.fanger.simpleclients.examples.ClientExample;
+import dev.fanger.simpleclients.examples.TraditionClientExample;
 import dev.fanger.simpleclients.examples.loadtest.results.ClientTestResults;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -10,7 +10,7 @@ public class ClientRunner implements Runnable {
 	private int sessionId;
 	private ConcurrentLinkedQueue<ClientRunner> clientRunners;
 	private ConcurrentLinkedQueue<ClientRunner> finishedClientRunners;
-	private ClientExample clientExample;
+	private TraditionClientExample traditionClientExample;
 	private ClientTestResults clientTestResults;
 	private int clientsRunningDuringTest;
 
@@ -28,10 +28,10 @@ public class ClientRunner implements Runnable {
 
 	@Override
 	public void run() {
-		clientExample = new ClientExample(sessionId, clientsRunningDuringTest);
-		clientExample.runTests();
-		clientTestResults.addTestResult(clientExample.getTestResult());
-		clientExample.shutDownClientExample();
+		traditionClientExample = new TraditionClientExample(sessionId, clientsRunningDuringTest);
+		traditionClientExample.runTests();
+		clientTestResults.addTestResult(traditionClientExample.getTestResult());
+		traditionClientExample.shutDownClientExample();
 
 		finishedClientRunners.add(this);
 		clientRunners.remove(this);

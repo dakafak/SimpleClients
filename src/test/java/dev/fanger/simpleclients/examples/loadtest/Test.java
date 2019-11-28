@@ -1,9 +1,9 @@
 package dev.fanger.simpleclients.examples.loadtest;
 
-import dev.fanger.simpleclients.SimpleClient;
+import dev.fanger.simpleclients.TraditionalClient;
 
 public interface Test {
 
-    void runTest(SimpleClient simpleClient);
+    void runTest(TraditionalClient traditionalClient);
 
 }
