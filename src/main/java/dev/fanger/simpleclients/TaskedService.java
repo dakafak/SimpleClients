@@ -2,11 +2,18 @@ package dev.fanger.simpleclients;
 
 import dev.fanger.simpleclients.server.data.task.Task;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class TaskedService {
 
     private ConcurrentHashMap<String, Task> tasks = new ConcurrentHashMap<>();
+
+    TaskedService(List<Task> tasks) {
+        for(Task task : tasks) {
+            addTask(task);
+        }
+    }
 
     /**
      * Shared method for tasked services.
@@ -14,7 +21,7 @@ public abstract class TaskedService {
      *
      * @param task
      */
-    public void addTask(Task task) {
+    void addTask(Task task) {
         tasks.put(task.getUrl(), task);
     }
 
