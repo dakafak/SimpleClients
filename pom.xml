@@ -7,6 +7,7 @@
   <groupId>dev.fanger</groupId>
   <artifactId>SimpleClients</artifactId>
   <version>1.3.0-SNAPSHOT</version>
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -33,4 +34,13 @@
       </plugin>
     </plugins>
   </build>
+
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub dakafak Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/dakafak/simpleclients</url>
+    </repository>
+  </distributionManagement>
+
 </project>
