@@ -21,15 +21,12 @@ public class SimpleServer extends TaskedService {
     private int port;
 
     private SimpleServer(Builder builder) {
+        super(builder.getTasks());
         this.port = builder.getPort();
         clients = new ConcurrentHashMap<>();
         connectionReceiveDataHelpers = new ConcurrentHashMap<>();
 
         overrideLoggerType(builder.getLoggerClassType());
-
-        for(Task task : builder.getTasks()) {
-            addTask(task);
-        }
     }
 
     /**
@@ -111,7 +108,8 @@ public class SimpleServer extends TaskedService {
             return this;
         }
 
-        public Builder withTask(Task task) {
+        public Builder withTask(String taskUrl, Task task) {
+            task.setUrl(taskUrl);
             tasks.add(task);
             return this;
         }

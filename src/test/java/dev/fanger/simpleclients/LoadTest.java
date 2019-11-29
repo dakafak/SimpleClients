@@ -1,7 +1,7 @@
 package dev.fanger.simpleclients;
 
 import dev.fanger.simpleclients.examples.client.ClientLoadTest;
-import dev.fanger.simpleclients.examples.ServerExample;
+import dev.fanger.simpleclients.examples.SimpleServerExample;
 
 public class LoadTest {
 
@@ -10,7 +10,7 @@ public class LoadTest {
 	}
 
 	public LoadTest() {
-		ServerExample serverExample = new ServerExample();
+		SimpleServerExample serverExample = new SimpleServerExample();
 		ClientLoadTest clientLoadTest = new ClientLoadTest();
 
 		serverExample.shutdownServer();

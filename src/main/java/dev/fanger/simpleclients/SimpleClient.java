@@ -2,23 +2,24 @@ package dev.fanger.simpleclients;
 
 import dev.fanger.simpleclients.connection.Connection;
 import dev.fanger.simpleclients.server.data.payload.Payload;
+import dev.fanger.simpleclients.server.data.task.Task;
 import dev.fanger.simpleclients.server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
 
-import java.io.ObjectInputStream;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 public class SimpleClient extends TaskedService {
 
     private Connection connection;
-    private Connection passiveConnection;
     private ConnectionReceiveDataHelper connectionReceiveDataHelper;
     private Thread connectionReceiveDataHelperThread;
 
-    public SimpleClient(String hostname, int port) {
-        this.connection = Connection.newClientConnection(hostname, port);
-        passiveConnection = Connection.newClientConnection(hostname, port);
+    private SimpleClient(Builder builder) {
+        super(builder.getTasks());
+        connection = Connection.newClientConnection(builder.getHostname(), builder.getPort());
 
-        connectionReceiveDataHelper = new ConnectionReceiveDataHelper(passiveConnection, getTasks());
+        connectionReceiveDataHelper = new ConnectionReceiveDataHelper(connection, getTasks());
         connectionReceiveDataHelperThread = new Thread(connectionReceiveDataHelper);
         connectionReceiveDataHelperThread.start();
     }
@@ -33,23 +34,11 @@ public class SimpleClient extends TaskedService {
     }
 
     /**
-     * Actively waits for a payload to be received. This will wait on the same lock as
-     * {@link ObjectInputStream#readObject()}
-     *
-     * @return
-     */
-    public Payload retrieveData() {
-        return connection.retrieveData();
-    }
-
-    /**
-     * Shuts down this client. Passive and active {@link Connection}. This will wait on a join for the clients
-     * {@link #connectionReceiveDataHelperThread} which is used for passive {@link Payload} retrieval
-     * for the passive connection, {@link #passiveConnection}.
+     * Shuts down this client. This will wait on a join for the clients {@link #connectionReceiveDataHelperThread}
+     * which is used for passive {@link Payload} retrieval
      */
     public void shutDownClient() {
         connection.shutDownConnection();
-        passiveConnection.shutDownConnection();
 
         try {
             connectionReceiveDataHelperThread.join();
@@ -63,6 +52,45 @@ public class SimpleClient extends TaskedService {
      */
     public UUID getId() {
         return connection.getId();
+    }
+
+    public static class Builder {
+
+        private int port;
+        private String hostname;
+        private List<Task> tasks;
+
+        public Builder(String hostname) {
+            this.hostname = hostname;
+            tasks = new LinkedList<>();
+        }
+
+        public Builder withPort(int port) {
+            this.port = port;
+            return this;
+        }
+
+        public Builder withTask(String taskUrl, Task task) {
+            task.setUrl(taskUrl);
+            tasks.add(task);
+            return this;
+        }
+
+        public SimpleClient build() {
+            return new SimpleClient(this);
+        }
+
+        public int getPort() {
+            return port;
+        }
+
+        public String getHostname() {
+            return hostname;
+        }
+
+        public List<Task> getTasks() {
+            return tasks;
+        }
     }
 
 }
