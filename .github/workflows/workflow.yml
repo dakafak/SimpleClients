@@ -1,0 +1,46 @@
+name: Java CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: maven test and package
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+
+  github_release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+
+      - name: Generate checksums
+        run: openssl dgst -sha256 -r target/SimpleClients.jar | awk '{print $1}' > target/SimpleClients.jar.sha256
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            target/SimpleClients.jar
+            target/SimpleClients.jar.sha256
+          body_path: RELEASE.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub pacakge
+        run: mvn deploy -Dregistry=https://maven.pkg.github.com/dakafak -Dtoken=${{ secrets.GITHUB_TOKEN }}
