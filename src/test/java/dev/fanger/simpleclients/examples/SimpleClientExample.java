@@ -33,4 +33,7 @@ public class SimpleClientExample {
         simpleClient.shutDownClient();
     }
 
+    public SimpleClient getSimpleClient() {
+        return simpleClient;
+    }
 }
