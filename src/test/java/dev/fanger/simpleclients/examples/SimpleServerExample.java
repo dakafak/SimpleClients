@@ -7,6 +7,7 @@ import dev.fanger.simpleclients.examples.server.data.ActionRecord;
 import dev.fanger.simpleclients.examples.server.tasks.ActionTask;
 import dev.fanger.simpleclients.examples.server.tasks.bounce.BounceTask1;
 import dev.fanger.simpleclients.examples.server.tasks.bounce.BounceTask3;
+import dev.fanger.simpleclients.exceptions.TaskExistsException;
 import dev.fanger.simpleclients.logging.loggers.SystemPrintTimeLogger;
 import dev.fanger.simpleclients.SimpleServer;
 
@@ -24,14 +25,18 @@ public class SimpleServerExample {
         ConcurrentHashMap<UUID, Integer> connectionIdToSessionId = new ConcurrentHashMap<>();
         ConcurrentLinkedQueue<ActionRecord> actionRecords = new ConcurrentLinkedQueue<>();
 
-        simpleServer = new SimpleServer.Builder(1776)
-                .withLoggingType(SystemPrintTimeLogger.class)
-                .withTask("/client/connect", new ConnectionTask(sessionIdToUsers, connectionIdToSessionId))
-                .withTask("/test/ping", new PingTask())
-                .withTask("/test/action", new ActionTask(actionRecords, sessionIdToUsers, connectionIdToSessionId))
-                .withTask("/test/bounce/1", new BounceTask1())
-                .withTask("/test/bounce/3", new BounceTask3())
-                .build();
+        try {
+            simpleServer = new SimpleServer.Builder(1776)
+                    .withLoggingType(SystemPrintTimeLogger.class)
+                    .withTask("/client/connect", new ConnectionTask(sessionIdToUsers, connectionIdToSessionId))
+                    .withTask("/test/ping", new PingTask())
+                    .withTask("/test/action", new ActionTask(actionRecords, sessionIdToUsers, connectionIdToSessionId))
+                    .withTask("/test/bounce/1", new BounceTask1())
+                    .withTask("/test/bounce/3", new BounceTask3())
+                    .build();
+        } catch (TaskExistsException e) {
+            e.printStackTrace();
+        }
 
         simpleServer.startListeningForConnections();
     }

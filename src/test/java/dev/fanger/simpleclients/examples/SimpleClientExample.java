@@ -14,8 +14,7 @@ public class SimpleClientExample {
         completedBounceTest = new boolean[1];
         completedBounceTest[0] = false;
 
-        simpleClient = new SimpleClient.Builder("127.0.0.1")
-                .withPort(1776)
+        simpleClient = new SimpleClient.Builder("127.0.0.1", 1776)
                 .withTask("/test/bounce/2", new BounceTask2())
                 .withTask("/test/bounce/4", new BounceTask4(completedBounceTest))
                 .build();

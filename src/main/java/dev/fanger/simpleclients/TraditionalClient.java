@@ -11,8 +11,8 @@ public class TraditionalClient {
 
     private Connection connection;
 
-    private TraditionalClient(Builder builder) {
-        connection = Connection.newClientConnection(builder.getHostname(), builder.getPort());
+    public TraditionalClient(String ip, int port) {
+        connection = Connection.newClientConnection(ip, port);
     }
 
     /**
@@ -27,9 +27,6 @@ public class TraditionalClient {
     /**
      * Actively waits for a payload to be received. This will wait on the same lock as
      * {@link ObjectInputStream#readObject()}
-     *
-     * Having both tasks and manual data retrieval may be less performant. See
-     * {@link ConnectionReceiveDataHelper#sendPayloadToTaskExecution(Payload)} for more information
      *
      * @return
      */
@@ -49,34 +46,6 @@ public class TraditionalClient {
      */
     public UUID getId() {
         return connection.getId();
-    }
-
-    public static class Builder {
-
-        private int port;
-        private String hostname;
-
-        public Builder(String hostname) {
-            this.hostname = hostname;
-        }
-
-        public Builder withPort(int port) {
-            this.port = port;
-            return this;
-        }
-
-        public TraditionalClient build() {
-            return new TraditionalClient(this);
-        }
-
-        public int getPort() {
-            return port;
-        }
-
-        public String getHostname() {
-            return hostname;
-        }
-
     }
 
 }

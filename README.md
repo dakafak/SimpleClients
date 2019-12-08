@@ -50,8 +50,7 @@ By creating a SimpleClient! :)
 public class SimpleClientExample {
 
     public SimpleClientExample() {
-        SimpleClient simpleClient = new SimpleClient.Builder("127.0.0.1")
-                .withPort(1776)
+        SimpleClient simpleClient = new SimpleClient.Builder("127.0.0.1", 1776)
                 .withTask("/test/bounce/2", new BounceTask2())
                 .withTask("/test/bounce/4", new BounceTask4(completedBounceTest))
                 .build();
@@ -70,9 +69,7 @@ You can do so with a TraditionalClient!
 public class TraditionClientExample {
 
     public TraditionClientExample() {
-        TraditionalClient traditionalClient = new TraditionalClient.Builder("127.0.0.1")
-                .withPort(1776)
-                .build();
+        TraditionalClient traditionalClient = new TraditionalClient("127.0.0.1", 1776);
         traditionalClient.sendData(new Payload<>("Test Ping Payload ", "/test/ping"));
         System.out.println(traditionalClient.retrieveData());
     }

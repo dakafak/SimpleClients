@@ -3,8 +3,10 @@ package dev.fanger.simpleclients.server.handlerthreads;
 import dev.fanger.simpleclients.connection.Connection;
 import dev.fanger.simpleclients.logging.Level;
 import dev.fanger.simpleclients.logging.Logger;
+import dev.fanger.simpleclients.server.cloud.CloudManager;
 import dev.fanger.simpleclients.server.data.task.Task;
 import dev.fanger.simpleclients.server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
+import dev.fanger.simpleclients.server.handlerthreads.datahelper.ServerDataHelper;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -22,15 +24,18 @@ public class ConnectionService implements Runnable {
     private ConcurrentHashMap<UUID, Connection> clients;
     private ConcurrentHashMap<UUID, ConnectionReceiveDataHelper> connectionReceiveDataHelpers;
     private ConcurrentHashMap<String, Task> tasks;
+    private CloudManager cloudManager;
 
     public ConnectionService(int port,
                              ConcurrentHashMap<UUID, Connection> clients,
                              ConcurrentHashMap<UUID, ConnectionReceiveDataHelper> connectionReceiveDataHelpers,
-                             ConcurrentHashMap<String, Task> tasks){
+                             ConcurrentHashMap<String, Task> tasks,
+                             CloudManager cloudManager){
         this.port = port;
         this.clients = clients;
         this.connectionReceiveDataHelpers = connectionReceiveDataHelpers;
         this.tasks = tasks;
+        this.cloudManager = cloudManager;
     }
 
     @Override
@@ -47,7 +52,7 @@ public class ConnectionService implements Runnable {
                 clients.put(newClientConnection.getId(), newClientConnection);
 
                 // Setup data helper for new connection
-                ConnectionReceiveDataHelper connectionReceiveDataHelper = new ConnectionReceiveDataHelper(newClientConnection, tasks);
+                ConnectionReceiveDataHelper connectionReceiveDataHelper = new ServerDataHelper(newClientConnection, tasks, cloudManager);
                 Thread connectionReceiveDataHelperThread = new Thread(connectionReceiveDataHelper);
                 connectionReceiveDataHelperThread.start();
                 connectionReceiveDataHelpers.put(newClientConnection.getId(), connectionReceiveDataHelper);

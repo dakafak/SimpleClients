@@ -16,9 +16,7 @@ public class TraditionClientExample {
     public TraditionClientExample(int sessionId,
                                   int currentConnections) {
         this.sessionId = sessionId;
-        traditionalClient = new TraditionalClient.Builder("127.0.0.1")
-                .withPort(1776)
-                .build();
+        traditionalClient = new TraditionalClient("127.0.0.1", 1776);
 
         testResult = new TestResult(currentConnections);
     }

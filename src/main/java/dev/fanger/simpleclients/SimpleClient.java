@@ -1,8 +1,10 @@
 package dev.fanger.simpleclients;
 
 import dev.fanger.simpleclients.connection.Connection;
+import dev.fanger.simpleclients.server.ServerConnectionInfo;
 import dev.fanger.simpleclients.server.data.payload.Payload;
 import dev.fanger.simpleclients.server.data.task.Task;
+import dev.fanger.simpleclients.server.handlerthreads.datahelper.ClientDataHelper;
 import dev.fanger.simpleclients.server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
 
 import java.util.LinkedList;
@@ -17,9 +19,9 @@ public class SimpleClient extends TaskedService {
 
     private SimpleClient(Builder builder) {
         super(builder.getTasks());
-        connection = Connection.newClientConnection(builder.getHostname(), builder.getPort());
+        connection = Connection.newClientConnection(builder.getServerConnectionInfo().getIp(), builder.getServerConnectionInfo().getPort());
 
-        connectionReceiveDataHelper = new ConnectionReceiveDataHelper(connection, getTasks());
+        connectionReceiveDataHelper = new ClientDataHelper(connection, getTasks());
         connectionReceiveDataHelperThread = new Thread(connectionReceiveDataHelper);
         connectionReceiveDataHelperThread.start();
     }
@@ -56,18 +58,12 @@ public class SimpleClient extends TaskedService {
 
     public static class Builder {
 
-        private int port;
-        private String hostname;
         private List<Task> tasks;
+        private ServerConnectionInfo serverConnectionInfo;
 
-        public Builder(String hostname) {
-            this.hostname = hostname;
+        public Builder(String ip, int port) {
+            this.serverConnectionInfo = new ServerConnectionInfo(ip, port);
             tasks = new LinkedList<>();
-        }
-
-        public Builder withPort(int port) {
-            this.port = port;
-            return this;
         }
 
         public Builder withTask(String taskUrl, Task task) {
@@ -80,17 +76,14 @@ public class SimpleClient extends TaskedService {
             return new SimpleClient(this);
         }
 
-        public int getPort() {
-            return port;
-        }
-
-        public String getHostname() {
-            return hostname;
+        public ServerConnectionInfo getServerConnectionInfo() {
+            return serverConnectionInfo;
         }
 
         public List<Task> getTasks() {
             return tasks;
         }
+
     }
 
 }

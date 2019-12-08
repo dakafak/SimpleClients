@@ -1,5 +1,6 @@
 package dev.fanger.simpleclients;
 
+import dev.fanger.simpleclients.server.cloud.AllowCloudProcessing;
 import dev.fanger.simpleclients.server.data.task.Task;
 
 import java.util.List;
@@ -22,6 +23,12 @@ public abstract class TaskedService {
      * @param task
      */
     void addTask(Task task) {
+        if(task.getClass().isAnnotationPresent(AllowCloudProcessing.class)) {
+            AllowCloudProcessing allowCloudProcessing = task.getClass().getAnnotation(AllowCloudProcessing.class);
+            task.setReturnType(allowCloudProcessing.returnType());
+            task.setAllowCloudProcessing(true);
+        }
+
         tasks.put(task.getUrl(), task);
     }
 

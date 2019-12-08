@@ -1,7 +1,10 @@
 package dev.fanger.simpleclients;
 
 import dev.fanger.simpleclients.connection.Connection;
+import dev.fanger.simpleclients.exceptions.TaskExistsException;
 import dev.fanger.simpleclients.logging.Logger;
+import dev.fanger.simpleclients.server.ServerConnectionInfo;
+import dev.fanger.simpleclients.server.cloud.CloudManager;
 import dev.fanger.simpleclients.server.data.payload.Payload;
 import dev.fanger.simpleclients.server.data.task.Task;
 import dev.fanger.simpleclients.server.handlerthreads.ConnectionService;
@@ -19,6 +22,7 @@ public class SimpleServer extends TaskedService {
     private ConcurrentHashMap<UUID, Connection> clients;
     private ConcurrentHashMap<UUID, ConnectionReceiveDataHelper> connectionReceiveDataHelpers;
     private int port;
+    private CloudManager cloudManager;
 
     private SimpleServer(Builder builder) {
         super(builder.getTasks());
@@ -27,6 +31,8 @@ public class SimpleServer extends TaskedService {
         connectionReceiveDataHelpers = new ConcurrentHashMap<>();
 
         overrideLoggerType(builder.getLoggerClassType());
+
+        this.cloudManager = new CloudManager(builder.getCloudConnectionInfo());
     }
 
     /**
@@ -35,7 +41,7 @@ public class SimpleServer extends TaskedService {
      * for each client.
      */
     public void startListeningForConnections(){
-        connectionService = new ConnectionService(port, clients, connectionReceiveDataHelpers, getTasks());
+        connectionService = new ConnectionService(port, clients, connectionReceiveDataHelpers, getTasks(), cloudManager);
         Thread connectionThread = new Thread(connectionService);
         connectionThread.start();
     }
@@ -92,25 +98,57 @@ public class SimpleServer extends TaskedService {
         return port;
     }
 
+    public int getCurrentServerLoad() {
+        return cloudManager.getCurrentServerLoad();
+    }
+
     public static class Builder {
 
         private int port;
         private Class<? extends Logger> loggerClassType;
         private List<Task> tasks;
+        private List<ServerConnectionInfo> cloudConnectionInfo;
 
         public Builder(int port) {
             this.port = port;
             tasks = new LinkedList<>();
+            //TODO put default built in tasks here
+            cloudConnectionInfo = new LinkedList<>();
         }
 
         public Builder withLoggingType(Class<? extends Logger> loggerClassType) {
             this.loggerClassType = loggerClassType;
+
             return this;
         }
 
-        public Builder withTask(String taskUrl, Task task) {
+        /**
+         * Throws {@link TaskExistsException} if the desired task url is already being used by an existing task
+         * Primarily used to block overriding of built in tasks
+         *
+         * @param taskUrl
+         * @param task
+         * @return
+         * @throws TaskExistsException
+         */
+        public Builder withTask(String taskUrl, Task task) throws TaskExistsException {
+            if(tasks.contains(taskUrl)) {
+                throw new TaskExistsException();
+            }
+
             task.setUrl(taskUrl);
             tasks.add(task);
+
+            return this;
+        }
+
+        public Builder withCloudConnectionInfo(ServerConnectionInfo... serverConnectionInfos) {
+            if(serverConnectionInfos != null) {
+                for(ServerConnectionInfo serverConnectionInfo : serverConnectionInfos) {
+                    cloudConnectionInfo.add(serverConnectionInfo);
+                }
+            }
+
             return this;
         }
 
@@ -128,6 +166,10 @@ public class SimpleServer extends TaskedService {
 
         public List<Task> getTasks() {
             return tasks;
+        }
+
+        public List<ServerConnectionInfo> getCloudConnectionInfo() {
+            return cloudConnectionInfo;
         }
 
     }
