@@ -40,4 +40,7 @@ public class SimpleServerExample {
         simpleServer.shutDownServer();
     }
 
+    public SimpleServer getSimpleServer() {
+        return simpleServer;
+    }
 }

@@ -60,4 +60,7 @@ public class TraditionClientExample {
         return testResult;
     }
 
+    public TraditionalClient getTraditionalClient() {
+        return traditionalClient;
+    }
 }
