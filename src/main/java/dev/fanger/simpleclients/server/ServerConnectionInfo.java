@@ -1,6 +1,8 @@
 package dev.fanger.simpleclients.server;
 
-public class ServerConnectionInfo {
+import java.io.Serializable;
+
+public class ServerConnectionInfo implements Serializable {
 
     private String ip;
     private int port;
@@ -16,6 +18,11 @@ public class ServerConnectionInfo {
 
     public int getPort() {
         return port;
+    }
+
+    @Override
+    public String toString() {
+        return ip + ":" + port;
     }
 
 }

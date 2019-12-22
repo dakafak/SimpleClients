@@ -2,7 +2,7 @@ package dev.fanger.simpleclients.server.data.payload;
 
 import java.io.Serializable;
 
-public class Payload<T> implements Serializable {
+public class Payload<T extends Serializable> implements Serializable {
 
     private T data;
     private String payloadUrl;

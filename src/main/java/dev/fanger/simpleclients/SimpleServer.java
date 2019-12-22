@@ -1,14 +1,16 @@
 package dev.fanger.simpleclients;
 
 import dev.fanger.simpleclients.connection.Connection;
-import dev.fanger.simpleclients.exceptions.TaskExistsException;
+import dev.fanger.simpleclients.exceptions.DuplicateTaskException;
 import dev.fanger.simpleclients.logging.Logger;
 import dev.fanger.simpleclients.server.ServerConnectionInfo;
 import dev.fanger.simpleclients.server.cloud.CloudManager;
 import dev.fanger.simpleclients.server.data.payload.Payload;
+import dev.fanger.simpleclients.server.data.task.ServerLoadTaskProcessUpdate;
+import dev.fanger.simpleclients.server.data.task.ServerLoadTaskRequestUpdate;
 import dev.fanger.simpleclients.server.data.task.Task;
 import dev.fanger.simpleclients.server.handlerthreads.ConnectionService;
-import dev.fanger.simpleclients.server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
+import dev.fanger.simpleclients.server.handlerthreads.datahelper.DataReceiveHelper;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -20,28 +22,41 @@ public class SimpleServer extends TaskedService {
     private ConnectionService connectionService;
 
     private ConcurrentHashMap<UUID, Connection> clients;
-    private ConcurrentHashMap<UUID, ConnectionReceiveDataHelper> connectionReceiveDataHelpers;
+    private ConcurrentHashMap<UUID, DataReceiveHelper> dataReceiveHelpers;
     private int port;
     private CloudManager cloudManager;
 
-    private SimpleServer(Builder builder) {
+    private SimpleServer(Builder builder) throws DuplicateTaskException {
         super(builder.getTasks());
         this.port = builder.getPort();
         clients = new ConcurrentHashMap<>();
-        connectionReceiveDataHelpers = new ConcurrentHashMap<>();
+        dataReceiveHelpers = new ConcurrentHashMap<>();
 
         overrideLoggerType(builder.getLoggerClassType());
 
-        this.cloudManager = new CloudManager(builder.getCloudConnectionInfo());
+        // Setup cloud manager
+        cloudManager = new CloudManager(port, builder.getCloudConnectionInfo());
+
+        // Add default tasks
+        ServerLoadTaskRequestUpdate serverLoadTaskRequestUpdate = new ServerLoadTaskRequestUpdate(cloudManager);
+        serverLoadTaskRequestUpdate.setUrl("/system/server/load");
+        addTask(serverLoadTaskRequestUpdate);
+
+        ServerLoadTaskProcessUpdate serverLoadTaskProcessUpdate = new ServerLoadTaskProcessUpdate(cloudManager);
+        serverLoadTaskProcessUpdate.setUrl("/system/server/load/update");
+        addTask(serverLoadTaskProcessUpdate);
+
+        // Start cloud manager with list of all tasks
+        cloudManager.start(getTasks().values());
     }
 
     /**
      * Starts the connection service thread. The connection service thread will actively listen to connections and
-     * immediately add them to the clients {@link ConcurrentHashMap} and setup {@link ConnectionReceiveDataHelper}
+     * immediately add them to the clients {@link ConcurrentHashMap} and setup {@link DataReceiveHelper}
      * for each client.
      */
     public void startListeningForConnections(){
-        connectionService = new ConnectionService(port, clients, connectionReceiveDataHelpers, getTasks(), cloudManager);
+        connectionService = new ConnectionService(port, clients, dataReceiveHelpers, getTasks(), cloudManager);
         Thread connectionThread = new Thread(connectionService);
         connectionThread.start();
     }
@@ -50,6 +65,7 @@ public class SimpleServer extends TaskedService {
      * Shuts down the {@link ConnectionService} for this server
      */
     public void shutDownServer(){
+        cloudManager.shutDown();
         connectionService.shutdown();
     }
 
@@ -90,6 +106,10 @@ public class SimpleServer extends TaskedService {
         Logger.overrideLoggerType(loggerClassType);
     }
 
+    public CloudManager getCloudManager() {
+        return cloudManager;
+    }
+
     public ConcurrentHashMap<UUID, Connection> getClients() {
         return clients;
     }
@@ -98,8 +118,15 @@ public class SimpleServer extends TaskedService {
         return port;
     }
 
-    public int getCurrentServerLoad() {
-        return cloudManager.getCurrentServerLoad();
+    @Override
+    public String toString() {
+        return "SimpleServer{" +
+                "connectionService=" + connectionService +
+                ", clients=" + clients +
+                ", dataReceiveHelpers=" + dataReceiveHelpers +
+                ", port=" + port +
+                ", cloudManager=" + cloudManager +
+                '}';
     }
 
     public static class Builder {
@@ -112,7 +139,6 @@ public class SimpleServer extends TaskedService {
         public Builder(int port) {
             this.port = port;
             tasks = new LinkedList<>();
-            //TODO put default built in tasks here
             cloudConnectionInfo = new LinkedList<>();
         }
 
@@ -122,20 +148,7 @@ public class SimpleServer extends TaskedService {
             return this;
         }
 
-        /**
-         * Throws {@link TaskExistsException} if the desired task url is already being used by an existing task
-         * Primarily used to block overriding of built in tasks
-         *
-         * @param taskUrl
-         * @param task
-         * @return
-         * @throws TaskExistsException
-         */
-        public Builder withTask(String taskUrl, Task task) throws TaskExistsException {
-            if(tasks.contains(taskUrl)) {
-                throw new TaskExistsException();
-            }
-
+        public Builder withTask(String taskUrl, Task task) {
             task.setUrl(taskUrl);
             tasks.add(task);
 
@@ -152,7 +165,7 @@ public class SimpleServer extends TaskedService {
             return this;
         }
 
-        public SimpleServer build() {
+        public SimpleServer build() throws DuplicateTaskException {
             return new SimpleServer(this);
         }
 

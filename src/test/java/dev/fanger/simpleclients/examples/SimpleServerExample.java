@@ -7,7 +7,7 @@ import dev.fanger.simpleclients.examples.server.data.ActionRecord;
 import dev.fanger.simpleclients.examples.server.tasks.ActionTask;
 import dev.fanger.simpleclients.examples.server.tasks.bounce.BounceTask1;
 import dev.fanger.simpleclients.examples.server.tasks.bounce.BounceTask3;
-import dev.fanger.simpleclients.exceptions.TaskExistsException;
+import dev.fanger.simpleclients.exceptions.DuplicateTaskException;
 import dev.fanger.simpleclients.logging.loggers.SystemPrintTimeLogger;
 import dev.fanger.simpleclients.SimpleServer;
 
@@ -34,7 +34,7 @@ public class SimpleServerExample {
                     .withTask("/test/bounce/1", new BounceTask1())
                     .withTask("/test/bounce/3", new BounceTask3())
                     .build();
-        } catch (TaskExistsException e) {
+        } catch (DuplicateTaskException e) {
             e.printStackTrace();
         }
 
@@ -48,4 +48,5 @@ public class SimpleServerExample {
     public SimpleServer getSimpleServer() {
         return simpleServer;
     }
+
 }

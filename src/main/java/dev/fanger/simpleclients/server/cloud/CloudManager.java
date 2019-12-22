@@ -5,147 +5,82 @@ import dev.fanger.simpleclients.logging.Level;
 import dev.fanger.simpleclients.logging.Logger;
 import dev.fanger.simpleclients.server.ServerConnectionInfo;
 import dev.fanger.simpleclients.server.data.payload.Payload;
+import dev.fanger.simpleclients.server.data.payload.ServerLoadUpdateRequest;
+import dev.fanger.simpleclients.server.data.payload.ServerLoadUpdateResponse;
+import dev.fanger.simpleclients.server.data.task.Task;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * WARNING : Cloud functionality for SimpleClients is experimental
+ *
  * The purpose of internal cloud managing in SimpleClients is to minimize CPU time for certain tasks. SimpleClients can
- * send data to process to other servers in the cluster to be executed by their tasks. A certain
- * {@link #THRESHOLD_TO_REQUEST_CLOUD_HELP} will need to be broken before trying to send data to another server. It will
- * then determine the best server to send data to based on the {@link #currentServerLoad} for each server in the
- * cluster.
+ * send data to process to other servers in the cluster to be executed by their tasks. A threshold for task max server
+ * load will need to be broken before trying to send data to another server. It will then determine the best server to
+ * send data to based on the {@link #taskLoadManager} for each server in the cluster.
  */
 public class CloudManager {
 
-    //TODO leader may not be needed, could have any server try to reach out to any server if current load passes a certain threshold
-    /**
-     * Whether or not this server is the leader of the connected servers
-     */
-//    private boolean leader;
-
-    //TODO create task to return current server load
-    private static int THRESHOLD_TO_REQUEST_CLOUD_HELP = 50;
-
-    /**
-     * TODO
-     * Incremented when a task starts execution and decremented when a task finishes execution
-     */
-    private int currentServerLoad;
+    private int id;
 
     /**
      * All other connections to other servers in the cloud
      */
-    private HashMap<ServerConnectionInfo, Connection> cloudConnections;
+    private List<ServerConnectionInfo> cloudConnectionsToMake;
+    private ConcurrentHashMap<ServerConnectionInfo, Connection> cloudConnections;
 
     /**
-     * TODO add this for determining random task execution division
-     * TODO change this to orderable hashmap and sort based on load to pick the lowest to send executions to
      * Used to determine which server in the cloud to send the next task to
      */
-    private HashMap<ServerConnectionInfo, Integer> cloudConnectionLoad;
+    //TODO try changing class to string to use instead and use class.getsimplename
+//    private ConcurrentHashMap<ServerConnectionInfo, ConcurrentHashMap<Class, Integer>> cloudConnectionLoad;
+//    private ConcurrentHashMap<Class, ServerConnectionInfo> taskToServerWithSmallestLoad;
 
-    public CloudManager(List<ServerConnectionInfo> cloudConnectionInfo) {
-        prepareCloudConnections(cloudConnectionInfo);
-    }
+    private TaskLoadManager taskLoadManager;
+    private CloudStatusManager cloudStatusManager;
+    private Thread cloudStatusThread;
 
-    private void prepareCloudConnections(List<ServerConnectionInfo> cloudConnectionInfo) {
-        cloudConnections = new HashMap<>();
+    public CloudManager(int id, List<ServerConnectionInfo> cloudConnectionInfo) {
+        this.id = id;
 
-        for(ServerConnectionInfo serverConnectionInfo : cloudConnectionInfo) {
-            cloudConnections.put(serverConnectionInfo, null);
+        //TODO try using a separate internal SimpleServer specifically for cloud functionality that sits on a different port and only has load update tasks
+        if(cloudConnectionInfo == null || cloudConnectionInfo.isEmpty()) {
+            return;
         }
 
-        checkAllCloudConnections();
-
-//        checkForLeader();
+        cloudConnectionsToMake = new ArrayList<>(cloudConnectionInfo);
+        cloudConnections = new ConcurrentHashMap<>();
+//        cloudConnectionLoad = new ConcurrentHashMap<>();
+//        taskToServerWithSmallestLoad = new ConcurrentHashMap<>();
     }
 
-    public void checkAllCloudConnections() {
-        for(ServerConnectionInfo serverConnectionInfo : cloudConnections.keySet()) {
-            checkAndTryToReconnectCloudConnection(serverConnectionInfo);
-        }
+    public void start(Collection<Task> allTasks) {
+        taskLoadManager = new TaskLoadManager(allTasks);
+
+        cloudStatusManager = new CloudStatusManager();
+        cloudStatusThread = new Thread(cloudStatusManager);
+
+        cloudStatusThread.start();
     }
 
-    /**
-     * Checks cloud connections for disconnected cloud connection. Reconnects if the {@link Connection} is null.
-     */
-    private void checkAndTryToReconnectCloudConnection(ServerConnectionInfo serverConnectionInfo) {
-        Connection connection = cloudConnections.get(serverConnectionInfo);
-        //TODO probably need to do another check besides null to determine if connection is open
-        if(connection == null || connection.connectionShouldBeDestroyed()) {
-            if(connection != null) {
-                connection.shutDownConnection();
-            }
-
-            Connection newCloudServerConnection = Connection.newClientConnection(serverConnectionInfo.getIp(), serverConnectionInfo.getPort());
-            cloudConnections.replace(serverConnectionInfo, newCloudServerConnection);
-        }
+    private boolean hasServerToSendDataTo(Class taskClass) {
+//        return taskToServerWithSmallestLoad.containsKey(taskClass) && taskToServerWithSmallestLoad.get(taskClass) != null;
+        return true;
     }
 
-    /**
-     * Looks through all cloud connections for an existing leader, if no leader exists, sets self as leader
-     */
-//    private void checkForLeader() {
-//
-//    }
-
-    //TODO these probably don't have to be synchronized??
-    public synchronized void incrementServerLoad() {
-        currentServerLoad++;
-    }
-
-    public synchronized void decrementServerLoad() {
-        currentServerLoad--;
-    }
-
-    public int getCurrentServerLoad() {
-        return currentServerLoad;
-    }
-
-    private boolean hasServerToSendDataTo() {
-        for(Connection connection : cloudConnections.values()) {
-            if(connection != null) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public boolean shouldSendDataToAnotherServer() {
-        checkAllCloudConnections();//TODO reconsider checking this every time it tries to send a message and use a periodically checked method like every 10 seconds
-
-        if(!hasServerToSendDataTo()) {
-            return false;
-        }
-
-        //TODO change this to check load values
-        return Math.random() < .5;
-    }
-
-    public Connection getServerToExecuteData() {
-        //TODO have this decide based on load of other servers instead of grabbing the first one
-        for(Connection connection : cloudConnections.values()) {
-            if(connection != null) {
-                return connection;
-            }
-        }
-
-        Logger.log(Level.WARN, "Could not find another server to send execution to");
-        return null;
-    }
-
-    public void executePayloadOnAnotherServer(Payload payload) {
-        Connection serverToSendDataTo = getServerToExecuteData();
+    public void executePayloadOnAnotherServer(Class taskClass, Payload payload) {
+        Connection serverToSendDataTo = getServerToExecuteData(taskClass);
 
         if(serverToSendDataTo != null) {
-            getServerToExecuteData().sendData(payload);
+            serverToSendDataTo.sendData(payload);
         }
     }
 
-    public Payload getExecutedDataFromAnotherServer(Payload payload) {
-        Connection serverToSendDataTo = getServerToExecuteData();
+    public Payload getExecutedDataFromAnotherServer(Class taskClass, Payload payload) {
+        Connection serverToSendDataTo = getServerToExecuteData(taskClass);
 
         if(serverToSendDataTo != null) {
             serverToSendDataTo.sendData(payload);
@@ -153,6 +88,294 @@ public class CloudManager {
         }
 
         return null;
+    }
+
+    public boolean shouldSendDataToAnotherServer(Class taskClass, int maxLoadForTask) {
+        //TODO determine if more efficient way to do the below two
+        cloudStatusManager.checkAllCloudConnections();
+//        cloudStatusManager.updateCloudLoadAmounts();
+
+        if(!hasServerToSendDataTo(taskClass)) {
+            return false;
+        }
+
+//        return taskLoadManager.getCurrentServerLoad(taskClass) >= maxLoadForTask &&
+//                taskLoadManager.getCurrentServerLoad(taskClass) > cloudConnectionLoad.get(taskToServerWithSmallestLoad.get(taskClass)).get(taskClass);
+        return taskLoadManager.getCurrentServerLoad(taskClass) >= maxLoadForTask;
+    }
+
+    public Connection getServerToExecuteData(Class taskClass) {
+//        if(taskToServerWithSmallestLoad.get(taskClass) != null) {
+//            return cloudConnections.get(taskToServerWithSmallestLoad.get(taskClass));
+//        }
+//
+//        Logger.log(Level.WARN, "Could not find another server to send execution to");
+//        return null;
+        int numberCloudConnections = cloudConnections.keySet().size();
+        ServerConnectionInfo randomConnetionInfo = (ServerConnectionInfo) cloudConnections.keySet().toArray()[(int) Math.random() * numberCloudConnections];
+        return cloudConnections.get(randomConnetionInfo);
+    }
+
+    public boolean isFullyConnectedToCloudServers() {
+        return cloudStatusManager.allServersAvailable();
+    }
+
+//    public boolean allServersHaveEmptyServerLoad(Class taskClass) {
+//        if(taskLoadManager.getCurrentServerLoad(taskClass) > 0) {
+//            return false;
+//        }
+//
+//        try {
+//            for (ServerConnectionInfo serverConnectionInfo : cloudConnectionLoad.keySet()) {
+//                if (cloudConnectionLoad.get(serverConnectionInfo).get(taskClass) > 0) {
+//                    return false;
+//                }
+//            }
+//        } catch (Exception e) {
+//            return false;
+//        }
+//
+//        return true;
+//    }
+
+//    public void printCloudLoadStatus(Class taskClass) {
+//        cloudStatusManager.printCloudLoadStatus(taskClass);
+//    }
+
+    public TaskLoadManager getTaskLoadManager() {
+        return taskLoadManager;
+    }
+
+    public void shutDown() {
+        cloudStatusManager.stop();
+
+        try {
+            cloudStatusThread.wait(1000);
+        } catch (InterruptedException e) {
+            Logger.log(Level.ERROR, e);
+        }
+    }
+
+    public void printLoadStatus(Class taskClass) {
+//            //TODO I think this needs work for grabbing the correct load status amount for neighbors, probably hitting the exception below and breaking
+            StringBuilder serverStatus = new StringBuilder("Cloud Status " + taskClass.getSimpleName() + "{");
+            serverStatus.append(id);
+            serverStatus.append("|");
+
+            for(int i = 0; i < cloudConnectionsToMake.size(); i++) {
+                ServerConnectionInfo serverConnectionInfo = cloudConnectionsToMake.get(i);
+                Connection connection = cloudConnections.get(serverConnectionInfo);
+                if(connection != null && !connection.connectionShouldBeDestroyed()) {
+                    try {
+//                        Integer taskLoadForConnection = cloudConnectionLoad.get(serverConnectionInfo).get(taskClass);
+                        int taskLoadForConnection = taskLoadManager.getCurrentServerLoad(taskClass);
+
+                        serverStatus.append(taskLoadForConnection);
+                    } catch (Exception e) {
+                        serverStatus.append("0");
+                    }
+                } else {
+                    serverStatus.append("X");
+                }
+
+                if(i < cloudConnectionsToMake.size() - 1) {
+                    serverStatus.append(",");
+                }
+            }
+            serverStatus.append("}");
+            Logger.log(Level.WARN, serverStatus.toString());
+        }
+
+//    public void updateLoadFromRemoteServer(ServerConnectionInfo serverConnectionInfo,
+//                                           ConcurrentHashMap<Class, TaskLoad> taskLoadFromOtherServer) {
+//        cloudConnectionLoad.put(serverConnectionInfo, taskLoadFromOtherServer);
+//    }
+
+//    public void updateServerLoad(ServerConnectionInfo serverConnectionInfo, Class taskClass, Integer load) {
+//        if(!cloudConnectionLoad.containsKey(serverConnectionInfo)) {
+//            cloudConnectionLoad.put(serverConnectionInfo, new ConcurrentHashMap<>());
+//        }
+//        cloudConnectionLoad.get(serverConnectionInfo).put(taskClass, load);
+//    }
+
+    private class CloudStatusManager implements Runnable {
+
+        private int threadSleepTime = 1_000;
+        private boolean continueRunning = true;
+
+        @Override
+        public void run() {
+            while(continueRunning) {
+                checkAllCloudConnections();
+//                updateCloudLoadAmounts();
+//                printAllCloudStatus();
+
+                try {
+                    Thread.sleep(threadSleepTime);
+                } catch (InterruptedException e) {
+                    Logger.log(Level.ERROR, e);
+                }
+            }
+        }
+
+        //TODO update this to send current task load and update task to input that
+//        private void updateCloudLoadAmounts() {
+//            for(ServerConnectionInfo serverConnectionInfo : cloudConnections.keySet()) {
+//                for(Class taskClass : taskLoadManager.getTaskClassList()) {
+//                    Connection serverConnection = cloudConnections.get(serverConnectionInfo);
+//
+//                    if (serverConnection != null && !serverConnection.connectionShouldBeDestroyed()) {
+//                        ServerLoadUpdateRequest serverLoadUpdateRequest = new ServerLoadUpdateRequest(taskClass, serverConnectionInfo);
+//                        Payload serverLoadRequest = new Payload(serverLoadUpdateRequest, "/system/server/load");
+//                        serverConnection.sendData(serverLoadRequest);
+//
+//                        Payload response = serverConnection.retrieveData();
+//                        if(response != null ) {
+//                            ServerLoadUpdateResponse serverLoadUpdateResponse = (ServerLoadUpdateResponse) response.getData();
+//                            updateServerLoad(
+//                                    serverLoadUpdateResponse.getServerConnectionInfo(),
+//                                    serverLoadUpdateResponse.getTaskClass(),
+//                                    serverLoadUpdateResponse.getLoad());
+//
+////                            System.out.println("Updated server load from cloud manager");
+////                            System.out.println(response);
+//                        } else {
+//                            Logger.log(Level.ERROR, "Server load response was null");
+//                        }
+//
+////                        Payload serverLoadResponse = serverConnection.retrieveData();
+////
+////                        if (serverLoadResponse != null) {
+////                            if (serverLoadResponse.getData() instanceof Integer) {
+////                                if(!cloudConnectionLoad.containsKey(serverConnectionInfo)) {
+////                                    cloudConnectionLoad.put(serverConnectionInfo, new ConcurrentHashMap<>());
+////                                }
+////                                cloudConnectionLoad.get(serverConnectionInfo).put(taskClass, (Integer) serverLoadResponse.getData());
+//////                            ArrayList<ServerLoadTaskRequestUpdate.ClassTaskLoadPair> allTaskLoadPairs = (ArrayList<ServerLoadTaskRequestUpdate.ClassTaskLoadPair>) serverLoadResponse.getData();
+//////                            ConcurrentHashMap<Class, TaskLoad> taskLoadFromOtherServer = (ConcurrentHashMap<Class, TaskLoad>) serverLoadResponse.getData();
+//////                            cloudConnectionLoad.put(serverConnectionInfo, taskLoadFromOtherServer);
+//////                            for(ServerLoadTaskRequestUpdate.ClassTaskLoadPair classTaskLoadPair : allTaskLoadPairs) {
+//////                                cloudConnectionLoad.get(serverConnectionInfo).put(classTaskLoadPair.getTaskClass(), classTaskLoadPair.getTaskLoad());
+//////                            }
+////
+////                            } else {
+////                                Logger.log(Level.ERROR, "Server load returned a wrong value type: " + serverLoadResponse.getData());
+////                            }
+////                        } else {
+////                            Logger.log(Level.ERROR, "Server load response was null");
+////                        }
+//                    } else {
+//                        Logger.log(Level.ERROR, "Server connection is null: " + serverConnectionInfo);
+//                    }
+//                }
+//            }
+//
+//            for(Class taskClassToSort : taskLoadManager.getTaskClassList()) {
+//                List<ServerConnectionInfo> sortedConnections = new ArrayList<>();
+//
+//                for(ServerConnectionInfo serverConnectionInfo : cloudConnectionLoad.keySet()) {
+//                    if(cloudConnectionLoad.get(serverConnectionInfo).containsKey(taskClassToSort)) {
+//                        sortedConnections.add(serverConnectionInfo);
+//                    }
+//                }
+//
+//                sortedConnections.sort((o1, o2) -> {//TODO holy shit clean this up
+//                    if (cloudConnectionLoad.get(o1).get(taskClassToSort) < cloudConnectionLoad.get(o2).get(taskClassToSort)) {
+//                        return -1;
+//                    } else {
+//                        return 1;
+//                    }
+//                });
+//
+//                if (!sortedConnections.isEmpty()) {
+//                    taskToServerWithSmallestLoad.put(taskClassToSort, sortedConnections.get(0));
+//                }
+//            }
+//
+//            printAllCloudStatus();
+//        }
+
+//        private void printAllCloudStatus() {
+//            for(ServerConnectionInfo serverConnectionInfo : cloudConnectionLoad.keySet()) {
+//                for(Class taskClass : cloudConnectionLoad.get(serverConnectionInfo).keySet()) {
+//                    printCloudLoadStatus(taskClass);
+//                }
+//            }
+//        }
+
+//        private void printCloudLoadStatus(Class taskClass) {
+//            //TODO I think this needs work for grabbing the correct load status amount for neighbors, probably hitting the exception below and breaking
+//            StringBuilder serverStatus = new StringBuilder("Cloud Status " + taskClass.getSimpleName() + "{");
+//            serverStatus.append(taskLoadManager.getCurrentServerLoad(taskClass));
+//            serverStatus.append("|");
+//
+//            for(int i = 0; i < cloudConnectionsToMake.size(); i++) {
+//                ServerConnectionInfo serverConnectionInfo = cloudConnectionsToMake.get(i);
+//                Connection connection = cloudConnections.get(serverConnectionInfo);
+//                if(connection != null && !connection.connectionShouldBeDestroyed()) {
+//                    try {
+//                        Integer taskLoadForConnection = cloudConnectionLoad.get(serverConnectionInfo).get(taskClass);
+//
+//                        serverStatus.append(taskLoadForConnection);
+//                    } catch (Exception e) {
+//                        serverStatus.append("0");
+//                    }
+//                } else {
+//                    serverStatus.append("X");
+//                }
+//
+//                if(i < cloudConnectionsToMake.size() - 1) {
+//                    serverStatus.append(",");
+//                }
+//            }
+//            serverStatus.append("}");
+//            Logger.log(Level.WARN, serverStatus.toString());
+//        }
+
+        private void checkAllCloudConnections() {
+            for(ServerConnectionInfo serverConnectionInfo : cloudConnectionsToMake) {
+                checkAndTryToReconnectCloudConnection(serverConnectionInfo);
+            }
+        }
+
+        /**
+         * Checks cloud connections for disconnected cloud connection. Reconnects if the {@link Connection} is null.
+         */
+        private void checkAndTryToReconnectCloudConnection(ServerConnectionInfo serverConnectionInfo) {
+            Connection connection = cloudConnections.get(serverConnectionInfo);
+
+            if(connection == null || connection.connectionShouldBeDestroyed()) {
+                if(connection != null) {
+                    connection.shutDownConnection();
+                }
+
+                Logger.log(Level.INFO, "Trying to connect to: " + serverConnectionInfo);
+                Connection newCloudServerConnection = Connection.newClientConnection(serverConnectionInfo.getIp(), serverConnectionInfo.getPort());
+                if(newCloudServerConnection != null) {
+                    cloudConnections.put(serverConnectionInfo, newCloudServerConnection);
+                }
+            }
+        }
+
+        public boolean allServersAvailable() {
+            for(ServerConnectionInfo serverConnectionInfo : cloudConnectionsToMake) {
+                Connection connection = cloudConnections.get(serverConnectionInfo);
+
+                if(connection == null || connection.connectionShouldBeDestroyed()) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public boolean isRunning() {
+            return continueRunning;
+        }
+
+        public void stop() {
+            this.continueRunning = false;
+        }
     }
 
 }

@@ -8,9 +8,9 @@ import dev.fanger.simpleclients.server.data.task.Task;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ClientDataHelper extends ConnectionReceiveDataHelper {
+public class DataReceiveHelperClient extends DataReceiveHelper {
 
-    public ClientDataHelper(Connection passiveConnection, ConcurrentHashMap<String, Task> tasks) {
+    public DataReceiveHelperClient(Connection passiveConnection, ConcurrentHashMap<String, Task> tasks) {
         super(passiveConnection, tasks);
     }
 

@@ -1,11 +1,12 @@
 package dev.fanger.simpleclients;
 
 import dev.fanger.simpleclients.connection.Connection;
+import dev.fanger.simpleclients.exceptions.DuplicateTaskException;
 import dev.fanger.simpleclients.server.ServerConnectionInfo;
 import dev.fanger.simpleclients.server.data.payload.Payload;
 import dev.fanger.simpleclients.server.data.task.Task;
-import dev.fanger.simpleclients.server.handlerthreads.datahelper.ClientDataHelper;
-import dev.fanger.simpleclients.server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
+import dev.fanger.simpleclients.server.handlerthreads.datahelper.DataReceiveHelperClient;
+import dev.fanger.simpleclients.server.handlerthreads.datahelper.DataReceiveHelper;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -14,16 +15,16 @@ import java.util.UUID;
 public class SimpleClient extends TaskedService {
 
     private Connection connection;
-    private ConnectionReceiveDataHelper connectionReceiveDataHelper;
-    private Thread connectionReceiveDataHelperThread;
+    private DataReceiveHelper dataReceiveHelper;
+    private Thread dataReceiveHelperThread;
 
-    private SimpleClient(Builder builder) {
+    private SimpleClient(Builder builder) throws DuplicateTaskException {
         super(builder.getTasks());
         connection = Connection.newClientConnection(builder.getServerConnectionInfo().getIp(), builder.getServerConnectionInfo().getPort());
 
-        connectionReceiveDataHelper = new ClientDataHelper(connection, getTasks());
-        connectionReceiveDataHelperThread = new Thread(connectionReceiveDataHelper);
-        connectionReceiveDataHelperThread.start();
+        dataReceiveHelper = new DataReceiveHelperClient(connection, getTasks());
+        dataReceiveHelperThread = new Thread(dataReceiveHelper);
+        dataReceiveHelperThread.start();
     }
 
     /**
@@ -36,14 +37,14 @@ public class SimpleClient extends TaskedService {
     }
 
     /**
-     * Shuts down this client. This will wait on a join for the clients {@link #connectionReceiveDataHelperThread}
+     * Shuts down this client. This will wait on a join for the clients {@link #dataReceiveHelperThread}
      * which is used for passive {@link Payload} retrieval
      */
     public void shutDownClient() {
         connection.shutDownConnection();
 
         try {
-            connectionReceiveDataHelperThread.join();
+            dataReceiveHelperThread.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -72,7 +73,7 @@ public class SimpleClient extends TaskedService {
             return this;
         }
 
-        public SimpleClient build() {
+        public SimpleClient build() throws DuplicateTaskException {
             return new SimpleClient(this);
         }
 

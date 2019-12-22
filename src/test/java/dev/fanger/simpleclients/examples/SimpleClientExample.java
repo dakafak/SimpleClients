@@ -3,6 +3,7 @@ package dev.fanger.simpleclients.examples;
 import dev.fanger.simpleclients.SimpleClient;
 import dev.fanger.simpleclients.examples.client.tasks.bounce.BounceTask2;
 import dev.fanger.simpleclients.examples.client.tasks.bounce.BounceTask4;
+import dev.fanger.simpleclients.exceptions.DuplicateTaskException;
 import dev.fanger.simpleclients.server.data.payload.Payload;
 
 public class SimpleClientExample {
@@ -14,10 +15,14 @@ public class SimpleClientExample {
         completedBounceTest = new boolean[1];
         completedBounceTest[0] = false;
 
-        simpleClient = new SimpleClient.Builder("127.0.0.1", 1776)
-                .withTask("/test/bounce/2", new BounceTask2())
-                .withTask("/test/bounce/4", new BounceTask4(completedBounceTest))
-                .build();
+        try {
+            simpleClient = new SimpleClient.Builder("127.0.0.1", 1776)
+                    .withTask("/test/bounce/2", new BounceTask2())
+                    .withTask("/test/bounce/4", new BounceTask4(completedBounceTest))
+                    .build();
+        } catch (DuplicateTaskException e) {
+            e.printStackTrace();
+        }
     }
 
     public void runTest() {
@@ -35,4 +40,5 @@ public class SimpleClientExample {
     public SimpleClient getSimpleClient() {
         return simpleClient;
     }
+
 }

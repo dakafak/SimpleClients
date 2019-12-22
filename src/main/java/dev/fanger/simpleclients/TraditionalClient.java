@@ -2,7 +2,6 @@ package dev.fanger.simpleclients;
 
 import dev.fanger.simpleclients.connection.Connection;
 import dev.fanger.simpleclients.server.data.payload.Payload;
-import dev.fanger.simpleclients.server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
 
 import java.io.ObjectInputStream;
 import java.util.UUID;

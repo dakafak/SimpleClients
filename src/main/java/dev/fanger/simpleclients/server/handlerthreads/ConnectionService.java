@@ -5,8 +5,8 @@ import dev.fanger.simpleclients.logging.Level;
 import dev.fanger.simpleclients.logging.Logger;
 import dev.fanger.simpleclients.server.cloud.CloudManager;
 import dev.fanger.simpleclients.server.data.task.Task;
-import dev.fanger.simpleclients.server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
-import dev.fanger.simpleclients.server.handlerthreads.datahelper.ServerDataHelper;
+import dev.fanger.simpleclients.server.handlerthreads.datahelper.DataReceiveHelper;
+import dev.fanger.simpleclients.server.handlerthreads.datahelper.DataReceiveHelperServer;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -22,18 +22,18 @@ public class ConnectionService implements Runnable {
     private ServerSocket serverSocket;
 
     private ConcurrentHashMap<UUID, Connection> clients;
-    private ConcurrentHashMap<UUID, ConnectionReceiveDataHelper> connectionReceiveDataHelpers;
+    private ConcurrentHashMap<UUID, DataReceiveHelper> dataReceiveHelpers;
     private ConcurrentHashMap<String, Task> tasks;
     private CloudManager cloudManager;
 
     public ConnectionService(int port,
                              ConcurrentHashMap<UUID, Connection> clients,
-                             ConcurrentHashMap<UUID, ConnectionReceiveDataHelper> connectionReceiveDataHelpers,
+                             ConcurrentHashMap<UUID, DataReceiveHelper> dataReceiveHelpers,
                              ConcurrentHashMap<String, Task> tasks,
                              CloudManager cloudManager){
         this.port = port;
         this.clients = clients;
-        this.connectionReceiveDataHelpers = connectionReceiveDataHelpers;
+        this.dataReceiveHelpers = dataReceiveHelpers;
         this.tasks = tasks;
         this.cloudManager = cloudManager;
     }
@@ -52,13 +52,13 @@ public class ConnectionService implements Runnable {
                 clients.put(newClientConnection.getId(), newClientConnection);
 
                 // Setup data helper for new connection
-                ConnectionReceiveDataHelper connectionReceiveDataHelper = new ServerDataHelper(newClientConnection, tasks, cloudManager);
-                Thread connectionReceiveDataHelperThread = new Thread(connectionReceiveDataHelper);
-                connectionReceiveDataHelperThread.start();
-                connectionReceiveDataHelpers.put(newClientConnection.getId(), connectionReceiveDataHelper);
+                DataReceiveHelper dataReceiveHelper = new DataReceiveHelperServer(newClientConnection, tasks, cloudManager);
+                Thread dataReceiveHelperThread = new Thread(dataReceiveHelper);
+                dataReceiveHelperThread.start();
+                dataReceiveHelpers.put(newClientConnection.getId(), dataReceiveHelper);
 
                 // Add watcher to shut down and remove clients after they've completed running
-                Thread connectionWatcherThread = new Thread(new ConnectionWatcher(newClientConnection.getId(), connectionReceiveDataHelperThread));
+                Thread connectionWatcherThread = new Thread(new ConnectionWatcher(newClientConnection.getId(), dataReceiveHelperThread));
                 connectionWatcherThread.start();
 
                 // Log status of total clients so far
@@ -85,25 +85,25 @@ public class ConnectionService implements Runnable {
 
     /**
      * Used to guarantee the shutdown of connections and data helper threads
-     * This is used in an additional thread that waits until the {@link #connectionReceiveDataHelperThread} completes
+     * This is used in an additional thread that waits until the {@link #dataReceiveHelperThread} completes
      *  but using {@link Thread[#join()]}
      */
     private class ConnectionWatcher implements Runnable {
 
         private UUID connectionId;
-        private Thread connectionReceiveDataHelperThread;
+        private Thread dataReceiveHelperThread;
 
         public ConnectionWatcher(UUID connectionId,
-                                 Thread connectionReceiveDataHelperThread) {
+                                 Thread dataReceiveHelperThread) {
             this.connectionId = connectionId;
-            this.connectionReceiveDataHelperThread = connectionReceiveDataHelperThread;
+            this.dataReceiveHelperThread = dataReceiveHelperThread;
         }
 
         @Override
         public void run() {
             try {
                 // Wait for the connection to disconnect
-                connectionReceiveDataHelperThread.join();
+                dataReceiveHelperThread.join();
             } catch (InterruptedException e) {
                 Logger.log(Level.DEBUG, e);
             } finally {
@@ -117,8 +117,8 @@ public class ConnectionService implements Runnable {
                         clients.remove(connectionId);
                     }
 
-                    if(connectionReceiveDataHelpers != null && connectionReceiveDataHelpers.containsKey(connectionId)) {
-                        connectionReceiveDataHelpers.remove(connectionId);
+                    if(dataReceiveHelpers != null && dataReceiveHelpers.containsKey(connectionId)) {
+                        dataReceiveHelpers.remove(connectionId);
                     }
                 }
             }

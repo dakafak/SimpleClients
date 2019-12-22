@@ -1,4 +1,4 @@
-package dev.fanger.simpleclients.server.cloud;
+package dev.fanger.simpleclients.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,13 +10,19 @@ import java.lang.annotation.Target;
 public @interface AllowCloudProcessing {
 
     /**
-     * Return type needs to be set for cloud processing to determine whether or not it should wait for a result from
-     * another server. {@link ReturnType#GET} will wait for a result and {@link ReturnType#POST} will send data and
-     * move on without waiting to retrieve anything back.
+     * Needs to be set for cloud processing to determine whether or not it should wait for a result from
+     * another server.
      *
      * @return
      */
-    ReturnType returnType();
+    boolean requiresReturnData();
+
+    /**
+     * Server load limit to decide when to send the request to another server in the cloud cluster
+     *
+     * @return
+     */
+    int serverLoadLimit();
 
     //TODO add an annotation for syncing data across cloud processing, maybe within the task reference or something
 

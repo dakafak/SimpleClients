@@ -1,18 +1,18 @@
 package dev.fanger.simpleclients.server.data.task;
 
 import dev.fanger.simpleclients.connection.Connection;
-import dev.fanger.simpleclients.server.cloud.ReturnType;
 import dev.fanger.simpleclients.server.data.payload.Payload;
-import dev.fanger.simpleclients.server.handlerthreads.datahelper.ConnectionReceiveDataHelper;
+import dev.fanger.simpleclients.server.handlerthreads.datahelper.DataReceiveHelper;
 
 public abstract class Task {
 
     private String url;
     private boolean allowCloudProcessing;
-    private ReturnType returnType;
+    private boolean requiresReturnData;
+    private int maxLoadForCloud;
 
     /**
-     * When a payload is retrieved by {@link ConnectionReceiveDataHelper} it will call this method immediately
+     * When a payload is retrieved by {@link DataReceiveHelper} it will call this method immediately
      *
      * @param connection
      * @param payload
@@ -35,12 +35,20 @@ public abstract class Task {
         return allowCloudProcessing;
     }
 
-    public ReturnType getReturnType() {
-        return returnType;
+    public boolean isRequiresReturnData() {
+        return requiresReturnData;
     }
 
-    public void setReturnType(ReturnType returnType) {
-        this.returnType = returnType;
+    public void setRequiresReturnData(boolean requiresReturnData) {
+        this.requiresReturnData = requiresReturnData;
+    }
+
+    public int getMaxLoadForCloud() {
+        return maxLoadForCloud;
+    }
+
+    public void setMaxLoadForCloud(int maxLoadForCloud) {
+        this.maxLoadForCloud = maxLoadForCloud;
     }
 
 }
