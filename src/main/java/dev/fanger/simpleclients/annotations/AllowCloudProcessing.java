@@ -24,6 +24,13 @@ public @interface AllowCloudProcessing {
      */
     int serverLoadLimit();
 
+    /**
+     * The number of threads to use for cloud task processors {@link dev.fanger.simpleclients.server.handlerthreads.datahelper.DataReceiveHelperServer}
+     *
+     * @return
+     */
+    int numberCloudTaskProcessingThreads();
+
     //TODO add an annotation for syncing data across cloud processing, maybe within the task reference or something
 
 }

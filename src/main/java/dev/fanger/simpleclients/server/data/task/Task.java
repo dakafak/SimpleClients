@@ -10,6 +10,7 @@ public abstract class Task {
     private boolean allowCloudProcessing;
     private boolean requiresReturnData;
     private int maxLoadForCloud;
+    private int numberThreadsForCloudTaskProcessors;
 
     /**
      * When a payload is retrieved by {@link DataReceiveHelper} it will call this method immediately
@@ -49,6 +50,14 @@ public abstract class Task {
 
     public void setMaxLoadForCloud(int maxLoadForCloud) {
         this.maxLoadForCloud = maxLoadForCloud;
+    }
+
+    public int getNumberThreadsForCloudTaskProcessors() {
+        return numberThreadsForCloudTaskProcessors;
+    }
+
+    public void setNumberThreadsForCloudTaskProcessors(int numberThreadsForCloudTaskProcessors) {
+        this.numberThreadsForCloudTaskProcessors = numberThreadsForCloudTaskProcessors;
     }
 
 }

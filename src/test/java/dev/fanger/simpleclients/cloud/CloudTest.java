@@ -20,7 +20,7 @@ public class CloudTest {
 
     private SimpleServer primaryServer;
     private SimpleServer[] additionalServers;
-    private int numberOfAdditionalServers = 1;
+    private int numberOfAdditionalServers = 3;
     private int numberOfClientsToPingServers = 50;
     private int numberOfPayloadsToSend = 1;
     private int[] allServerPorts;
@@ -72,21 +72,35 @@ public class CloudTest {
 //            }
 //        }
 
-//        while(!primaryServer.getCloudManager().allServersHaveEmptyServerLoad(ExpensiveTask.class)) {
-//            printAllServerStatuses();
-//
-//            try {
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
+        while(!allServersHaveEmptyServerLoad()) {
+            System.out.println("Waiting for tasks to finish");
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
         // Shut down
         System.out.println("--------------------------------------------------------------------------------" +
                 "Shutting down servers--------------------------------------------------------");
         shutdownServers();
         System.exit(0);
+    }
+
+    private boolean allServersHaveEmptyServerLoad() {
+        if(!primaryServer.getCloudManager().hasEmptyTaskQueues()) {
+            return false;
+        }
+
+        for(SimpleServer simpleServer : additionalServers) {
+            if(!simpleServer.getCloudManager().hasEmptyTaskQueues()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private boolean allServersAreConnected() {
@@ -127,43 +141,35 @@ public class CloudTest {
         return null;
     }
 
+    private List<ClientRunner> clientRunners;
+    private List<Thread> clientRunnerThreads;
     private void createClientsAndRunTests() {
-        //TODO create threads here for running this client stuff? -- only if this is changed to wait for data retrieval
-        List<TraditionalClient> allClients = new ArrayList<>();
+        clientRunners = new ArrayList<>();
+        clientRunnerThreads = new ArrayList<>();
 
         // Create clients
         for(int i = 0; i < numberOfClientsToPingServers; i++) {
-            allClients.add(new TraditionalClient("127.0.0.1", 999));
+            ClientRunner clientRunner = new ClientRunner();
+            clientRunners.add(clientRunner);
+            Thread newClientRunnerThread = new Thread(clientRunner);
+            clientRunnerThreads.add(newClientRunnerThread);
         }
 
-        // Send data to servers
-        for(TraditionalClient traditionalClient : allClients) {
-            for(int i = 0; i < numberOfPayloadsToSend; i++) {
-                Payload expensiveTaskPayload = new Payload("hey", "/test/expensive");
-                traditionalClient.sendData(expensiveTaskPayload);
+        for(Thread clientRunnerThread : clientRunnerThreads) {
+            clientRunnerThread.start();
+        }
+
+        for(Thread clientRunnerThread : clientRunnerThreads) {
+            try {
+                clientRunnerThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            printAllServerStatuses();
         }
 
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        for(ClientRunner clientRunner : clientRunners) {
+            clientRunner.shutDownClient();
         }
-
-        // Shut down clients
-//        for(TraditionalClient traditionalClient : allClients) {
-//            traditionalClient.shutDownClient();
-//        }
-    }
-
-    private void printAllServerStatuses() {
-//        System.out.println("-----------------------Cloud status----------");
-//        primaryServer.getCloudManager().printCloudLoadStatus(ExpensiveTask.class);
-//        for(SimpleServer simpleServer : additionalServers) {
-//            simpleServer.getCloudManager().printCloudLoadStatus(ExpensiveTask.class);
-//        }
-//        System.out.println("---------------------------------------------");
     }
 
     private void shutdownServers() {
@@ -171,6 +177,28 @@ public class CloudTest {
         for(SimpleServer simpleServer : additionalServers) {
             simpleServer.shutDownServer();
         }
+    }
+
+    class ClientRunner implements Runnable {
+
+        private TraditionalClient traditionalClient;
+
+        public ClientRunner() {
+            traditionalClient = new TraditionalClient("127.0.0.1", 999);
+        }
+
+        @Override
+        public void run() {
+            for(int i = 0; i < numberOfPayloadsToSend; i++) {
+                Payload expensiveTaskPayload = new Payload("Expensive", "/test/expensive");
+                traditionalClient.sendData(expensiveTaskPayload);
+            }
+        }
+
+        private void shutDownClient() {
+            traditionalClient.shutDownClient();
+        }
+
     }
 
 }

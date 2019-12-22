@@ -40,6 +40,7 @@ public abstract class TaskedService {
             task.setRequiresReturnData(allowCloudProcessing.requiresReturnData());
             task.setAllowCloudProcessing(true);
             task.setMaxLoadForCloud(allowCloudProcessing.serverLoadLimit());
+            task.setNumberThreadsForCloudTaskProcessors(allowCloudProcessing.numberCloudTaskProcessingThreads());
         }
 
         tasks.put(task.getUrl(), task);

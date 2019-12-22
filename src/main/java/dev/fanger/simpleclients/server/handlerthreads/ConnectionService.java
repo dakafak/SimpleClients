@@ -22,13 +22,13 @@ public class ConnectionService implements Runnable {
     private ServerSocket serverSocket;
 
     private ConcurrentHashMap<UUID, Connection> clients;
-    private ConcurrentHashMap<UUID, DataReceiveHelper> dataReceiveHelpers;
+    private ConcurrentHashMap<UUID, DataReceiveHelperServer> dataReceiveHelpers;
     private ConcurrentHashMap<String, Task> tasks;
     private CloudManager cloudManager;
 
     public ConnectionService(int port,
                              ConcurrentHashMap<UUID, Connection> clients,
-                             ConcurrentHashMap<UUID, DataReceiveHelper> dataReceiveHelpers,
+                             ConcurrentHashMap<UUID, DataReceiveHelperServer> dataReceiveHelpers,
                              ConcurrentHashMap<String, Task> tasks,
                              CloudManager cloudManager){
         this.port = port;
@@ -52,7 +52,7 @@ public class ConnectionService implements Runnable {
                 clients.put(newClientConnection.getId(), newClientConnection);
 
                 // Setup data helper for new connection
-                DataReceiveHelper dataReceiveHelper = new DataReceiveHelperServer(newClientConnection, tasks, cloudManager);
+                DataReceiveHelperServer dataReceiveHelper = new DataReceiveHelperServer(newClientConnection, tasks, cloudManager);
                 Thread dataReceiveHelperThread = new Thread(dataReceiveHelper);
                 dataReceiveHelperThread.start();
                 dataReceiveHelpers.put(newClientConnection.getId(), dataReceiveHelper);
@@ -76,6 +76,11 @@ public class ConnectionService implements Runnable {
      */
     public void shutdown() {
         this.continueRunning = false;
+
+        for(DataReceiveHelperServer dataReceiveHelper : dataReceiveHelpers.values()) {
+            dataReceiveHelper.shutdown();
+        }
+
         try {
             serverSocket.close();
         } catch (IOException e) {

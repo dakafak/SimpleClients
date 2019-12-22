@@ -6,11 +6,10 @@ import dev.fanger.simpleclients.logging.Logger;
 import dev.fanger.simpleclients.server.ServerConnectionInfo;
 import dev.fanger.simpleclients.server.cloud.CloudManager;
 import dev.fanger.simpleclients.server.data.payload.Payload;
-import dev.fanger.simpleclients.server.data.task.ServerLoadTaskProcessUpdate;
-import dev.fanger.simpleclients.server.data.task.ServerLoadTaskRequestUpdate;
 import dev.fanger.simpleclients.server.data.task.Task;
 import dev.fanger.simpleclients.server.handlerthreads.ConnectionService;
 import dev.fanger.simpleclients.server.handlerthreads.datahelper.DataReceiveHelper;
+import dev.fanger.simpleclients.server.handlerthreads.datahelper.DataReceiveHelperServer;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -22,7 +21,7 @@ public class SimpleServer extends TaskedService {
     private ConnectionService connectionService;
 
     private ConcurrentHashMap<UUID, Connection> clients;
-    private ConcurrentHashMap<UUID, DataReceiveHelper> dataReceiveHelpers;
+    private ConcurrentHashMap<UUID, DataReceiveHelperServer> dataReceiveHelpers;
     private int port;
     private CloudManager cloudManager;
 
@@ -36,15 +35,6 @@ public class SimpleServer extends TaskedService {
 
         // Setup cloud manager
         cloudManager = new CloudManager(port, builder.getCloudConnectionInfo());
-
-        // Add default tasks
-        ServerLoadTaskRequestUpdate serverLoadTaskRequestUpdate = new ServerLoadTaskRequestUpdate(cloudManager);
-        serverLoadTaskRequestUpdate.setUrl("/system/server/load");
-        addTask(serverLoadTaskRequestUpdate);
-
-        ServerLoadTaskProcessUpdate serverLoadTaskProcessUpdate = new ServerLoadTaskProcessUpdate(cloudManager);
-        serverLoadTaskProcessUpdate.setUrl("/system/server/load/update");
-        addTask(serverLoadTaskProcessUpdate);
 
         // Start cloud manager with list of all tasks
         cloudManager.start(getTasks().values());

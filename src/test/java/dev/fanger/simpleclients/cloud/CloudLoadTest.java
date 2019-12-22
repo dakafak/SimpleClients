@@ -54,7 +54,7 @@ public class CloudLoadTest {
         // Send data to servers
         for(TraditionalClient traditionalClient : allClients) {
             for(int i = 0; i < 1; i++) {
-                Payload expensiveTaskPayload = new Payload("hey", "/test/expensive");
+                Payload expensiveTaskPayload = new Payload("Expensive", "/test/expensive");
                 traditionalClient.sendData(expensiveTaskPayload);
             }
         }
