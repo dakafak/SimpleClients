@@ -28,7 +28,7 @@ public class ActionTask extends Task {
 	}
 
 	@Override
-	public void executeTask(Connection connection, Payload payload) {
+	public void executePayload(Connection connection, Payload payload) {
 		if(payload.getData() instanceof Action) {
 			ActionRecord actionRecord = new ActionRecord();
 			actionRecord.setActionPerformed((Action) payload.getData());

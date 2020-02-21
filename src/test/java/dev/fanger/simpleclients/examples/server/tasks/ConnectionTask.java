@@ -23,7 +23,7 @@ public class ConnectionTask extends Task {
 	}
 
 	@Override
-	public void executeTask(Connection connection, Payload payload) {
+	public void executePayload(Connection connection, Payload payload) {
 		if(payload.getData() instanceof ConnectionRequest) {
 			// Lol who even uses security?
 			ConnectionRequest connectionRequest = (ConnectionRequest) payload.getData();

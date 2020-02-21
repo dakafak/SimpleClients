@@ -18,7 +18,7 @@ public class ExpensiveTask extends Task {
     }
 
     @Override
-    public void executeTask(Connection connection, Payload payload) {
+    public void executePayload(Connection connection, Payload payload) {
         try {
             Thread.sleep(50);
         } catch (InterruptedException e) {

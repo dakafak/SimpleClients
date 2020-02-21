@@ -7,7 +7,7 @@ import dev.fanger.simpleclients.server.data.task.Task;
 public class PingTask extends Task {
 
     @Override
-    public void executeTask(Connection connection, Payload payload) {
+    public void executePayload(Connection connection, Payload payload) {
         connection.sendData(payload);
     }
 

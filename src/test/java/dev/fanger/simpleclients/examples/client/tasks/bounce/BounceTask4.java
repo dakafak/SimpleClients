@@ -13,7 +13,7 @@ public class BounceTask4 extends Task {
     }
 
     @Override
-    public void executeTask(Connection connection, Payload payload) {
+    public void executePayload(Connection connection, Payload payload) {
         System.out.println("Hit bounce task 4");
         completedBounceTest[0] = true;
     }

@@ -34,7 +34,7 @@ In the above example, we add a ping task to the server, below is how that task i
 public class PingTask extends Task {
 
     @Override
-    public void executeTask(Connection connection, Payload payload) {
+    public void executePayload(Connection connection, Payload payload) {
         connection.sendData(payload);
     }
 

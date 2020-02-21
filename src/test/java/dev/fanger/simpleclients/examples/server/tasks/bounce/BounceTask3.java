@@ -7,7 +7,7 @@ import dev.fanger.simpleclients.server.data.task.Task;
 public class BounceTask3 extends Task {
 
     @Override
-    public void executeTask(Connection connection, Payload payload) {
+    public void executePayload(Connection connection, Payload payload) {
         System.out.println("Hit bounce task 3");
         connection.sendData(new Payload("", "/test/bounce/4"));
     }

@@ -81,6 +81,10 @@ public class ConnectionService implements Runnable {
             dataReceiveHelper.shutdown();
         }
 
+        for(Task task : tasks.values()) {
+            task.shutDownTaskExecutors();
+        }
+
         try {
             serverSocket.close();
         } catch (IOException e) {

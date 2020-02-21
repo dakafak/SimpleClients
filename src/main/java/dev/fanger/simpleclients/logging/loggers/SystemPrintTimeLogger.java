@@ -14,7 +14,7 @@ public class SystemPrintTimeLogger extends Logger {
         enabledLevels.add(Level.INFO);
         enabledLevels.add(Level.WARN);
         enabledLevels.add(Level.ERROR);
-//        enabledLevels.add(Level.DEBUG);
+        enabledLevels.add(Level.DEBUG);
     }
 
     @Override
