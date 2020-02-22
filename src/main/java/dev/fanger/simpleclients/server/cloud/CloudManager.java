@@ -170,8 +170,10 @@ public class CloudManager {
         }
 
         private void checkAllCloudConnections() {
-            for(ServerConnectionInfo serverConnectionInfo : cloudConnectionsToMake) {
-                checkAndTryToReconnectCloudConnection(serverConnectionInfo);
+            if(cloudConnectionsToMake != null) {
+                for (ServerConnectionInfo serverConnectionInfo : cloudConnectionsToMake) {
+                    checkAndTryToReconnectCloudConnection(serverConnectionInfo);
+                }
             }
         }
 

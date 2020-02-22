@@ -8,8 +8,6 @@ import dev.fanger.simpleclients.server.data.payload.CloudTaskPayload;
 import dev.fanger.simpleclients.server.data.payload.Payload;
 import dev.fanger.simpleclients.server.data.task.Task;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -31,12 +29,12 @@ public class DataReceiveHelperServer extends DataReceiveHelper {
         if(payload != null) {
             Task task = tasks.get(payload.getPayloadUrl());
             if(task != null) {
-                if(task.hasAllowedCloudProcessing()) {
+                if(task.hasEnableCloudProcessing()) {
                     cloudManager.getTaskLoadManager().incrementServerLoad(task.getClass());
 
                     if(payload instanceof CloudTaskPayload) {//TODO add another check for hop count
                         addPayloadToCloudProcessors(task, payload);
-                    } else if(cloudManager.shouldSendDataToAnotherServer(task.getClass(), task.getMaxLoadForCloud())) {
+                    } else if(cloudManager.shouldSendDataToAnotherServer(task.getClass(), task.getNumberThreads())) {
                         sendDataToAnotherServer(task, payload);
                         cloudManager.getTaskLoadManager().decrementServerLoad(task.getClass());
                     } else {
@@ -73,7 +71,7 @@ public class DataReceiveHelperServer extends DataReceiveHelper {
         if(!cloudTaskProcessorsPerTasks.containsKey(task)) {
             cloudTaskProcessorsPerTasks.put(task, new ConcurrentHashMap<>());
 
-            for(int i = 0; i < task.getNumberThreadsForCloudTaskProcessors(); i++) {
+            for(int i = 0; i < task.getNumberThreads(); i++) {
                 CloudTaskProcessor cloudTaskProcessor = new CloudTaskProcessor(task, payloadQueuesForTasks.get(task));
                 Thread cloudTaskProcessorThread = new Thread(cloudTaskProcessor);
                 cloudTaskProcessorsPerTasks.get(task).put(cloudTaskProcessor, cloudTaskProcessorThread);

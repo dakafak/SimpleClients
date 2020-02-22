@@ -1,6 +1,6 @@
 package dev.fanger.simpleclients;
 
-import dev.fanger.simpleclients.annotations.AllowCloudProcessing;
+import dev.fanger.simpleclients.annotations.AdvancedTaskProperties;
 import dev.fanger.simpleclients.exceptions.DuplicateTaskException;
 import dev.fanger.simpleclients.server.data.task.Task;
 
@@ -35,12 +35,12 @@ public abstract class TaskedService {
      * @param task
      */
     void addTask(Task task) {
-        if(task.getClass().isAnnotationPresent(AllowCloudProcessing.class)) {
-            AllowCloudProcessing allowCloudProcessing = task.getClass().getAnnotation(AllowCloudProcessing.class);
-            task.setRequiresReturnData(allowCloudProcessing.requiresReturnData());
-            task.setAllowCloudProcessing(true);
-            task.setMaxLoadForCloud(allowCloudProcessing.serverLoadLimit());
-            task.setNumberThreadsForCloudTaskProcessors(allowCloudProcessing.numberCloudTaskProcessingThreads());
+        if(task.getClass().isAnnotationPresent(AdvancedTaskProperties.class)) {
+            AdvancedTaskProperties advancedTaskProperties = task.getClass().getAnnotation(AdvancedTaskProperties.class);
+            task.setNumberThreads(advancedTaskProperties.numberThreads());
+            task.setQueueCapacity(advancedTaskProperties.queueCapacity());
+            task.setEnableCloudProcessing(advancedTaskProperties.enableCloudProcessing());
+            task.setRequiresReturnData(advancedTaskProperties.requiresReturnData());
         }
 
         tasks.put(task.getUrl(), task);

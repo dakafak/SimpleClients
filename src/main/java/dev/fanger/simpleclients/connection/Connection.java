@@ -86,7 +86,7 @@ public class Connection {
             try {
                 inputStream.close();
             } catch (IOException e) {
-                Logger.log(Level.ERROR, e);
+                Logger.log(Level.DEBUG, e);
             }
         }
 
@@ -94,14 +94,14 @@ public class Connection {
             try {
                 outputStream.close();
             } catch (IOException e) {
-                Logger.log(Level.ERROR, e);
+                Logger.log(Level.DEBUG, e);
             }
         }
 
         try {
             socket.close();
         } catch (IOException e) {
-            Logger.log(Level.ERROR, e);
+            Logger.log(Level.DEBUG, e);
         }
     }
 

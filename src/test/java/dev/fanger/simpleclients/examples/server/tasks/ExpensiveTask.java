@@ -1,14 +1,16 @@
 package dev.fanger.simpleclients.examples.server.tasks;
 
+import dev.fanger.simpleclients.annotations.AdvancedTaskProperties;
 import dev.fanger.simpleclients.connection.Connection;
-import dev.fanger.simpleclients.annotations.AllowCloudProcessing;
 import dev.fanger.simpleclients.server.data.payload.Payload;
 import dev.fanger.simpleclients.server.data.task.Task;
 
-@AllowCloudProcessing(
+@AdvancedTaskProperties(
+        numberThreads = 4,
+        queueCapacity = 10,
         requiresReturnData = false,
-        serverLoadLimit = 10,
-        numberCloudTaskProcessingThreads = 4)
+        enableCloudProcessing = true
+)
 public class ExpensiveTask extends Task {
 
     private int id;

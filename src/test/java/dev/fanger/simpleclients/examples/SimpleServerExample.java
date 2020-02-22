@@ -1,5 +1,6 @@
 package dev.fanger.simpleclients.examples;
 
+import dev.fanger.simpleclients.examples.server.tasks.BlastTask;
 import dev.fanger.simpleclients.examples.server.tasks.ConnectionTask;
 import dev.fanger.simpleclients.examples.server.connection.User;
 import dev.fanger.simpleclients.examples.server.tasks.PingTask;
@@ -33,6 +34,7 @@ public class SimpleServerExample {
                     .withTask("/test/action", new ActionTask(actionRecords, sessionIdToUsers, connectionIdToSessionId))
                     .withTask("/test/bounce/1", new BounceTask1())
                     .withTask("/test/bounce/3", new BounceTask3())
+                    .withTask("/test/blast", new BlastTask())
                     .build();
         } catch (DuplicateTaskException e) {
             e.printStackTrace();

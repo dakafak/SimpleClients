@@ -10,9 +10,15 @@ public enum TestType {
         traditionalClient.sendData(new Payload<>("Test Ping Payload ", "/test/ping"));
         traditionalClient.retrieveData();
     }),
-    ACTION(500, (TraditionalClient traditionalClient) -> {
+
+    ACTION(50, (TraditionalClient traditionalClient) -> {
         traditionalClient.sendData(new Payload<>(Action.values()[(int)Math.floor(Math.random() * Action.values().length)], "/test/action"));
         traditionalClient.retrieveData();
+    }),
+
+    BLAST(5000, (TraditionalClient traditionalClient) -> {
+        traditionalClient.sendData(new Payload("HEY", "/test/blast"));
+        // This doesn't wait for a response, this is to test the bounds of queue size
     });
 
     private int testsToRun;
