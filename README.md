@@ -44,6 +44,29 @@ That's it! It's incredibly easy to create and add tasks to a SimpleClients serve
 defining **what** to do with received data, rather than worrying about **how** to receieve data.
 In the above `PingTask`, data is sent directly back to the client from which the data was received.
 
+#### Advanced Task Properties!
+You can modify advanced properties of a task by adding a class level annotation called `@AdvancedTaskProperties`
+<br><br>
+`numberThreads` corresponds to the number of `TaskExecutor`'s this specific task will use. The default value is 1.
+<br><br>
+`queueCapacity` corresponds to the max queue size of `TaskExecutionRequest`. The default value is 128.
+<br><br>
+More information on these properties can be found in the annotation's documentation.
+```java
+@AdvancedTaskProperties(
+        numberThreads = 4,
+        queueCapacity = 10,
+        enableCloudProcessing = true,
+        requiresReturnData = false
+)
+public class SomeTaskYouCreated {
+    @Override
+    public void executePayload(Connection connection, Payload payload) {
+        ...
+    }
+}
+```
+
 ### How do I send data to the server?
 By creating a SimpleClient! :)
 ```java
