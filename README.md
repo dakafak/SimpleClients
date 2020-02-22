@@ -59,7 +59,7 @@ More information on these properties can be found in the annotation's documentat
         enableCloudProcessing = true,
         requiresReturnData = false
 )
-public class SomeTaskYouCreated {
+public class SomeTaskYouCreated extends Task {
     @Override
     public void executePayload(Connection connection, Payload payload) {
         ...
