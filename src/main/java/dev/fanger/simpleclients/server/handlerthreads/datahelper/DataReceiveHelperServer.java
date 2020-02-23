@@ -9,19 +9,14 @@ import dev.fanger.simpleclients.server.data.payload.Payload;
 import dev.fanger.simpleclients.server.data.task.Task;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class DataReceiveHelperServer extends DataReceiveHelper {
 
     private CloudManager cloudManager;
-    private ConcurrentHashMap<Task, ConcurrentHashMap<CloudTaskProcessor, Thread>> cloudTaskProcessorsPerTasks;
-    private ConcurrentHashMap<Task, ConcurrentLinkedQueue<Payload>> payloadQueuesForTasks;
 
     public DataReceiveHelperServer(Connection passiveConnection, ConcurrentHashMap<String, Task> tasks, CloudManager cloudManager) {
         super(passiveConnection, tasks);
         this.cloudManager = cloudManager;
-        cloudTaskProcessorsPerTasks = new ConcurrentHashMap<>();
-        payloadQueuesForTasks = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -32,17 +27,13 @@ public class DataReceiveHelperServer extends DataReceiveHelper {
                 if(task.hasEnableCloudProcessing()) {
                     cloudManager.getTaskLoadManager().incrementServerLoad(task.getClass());
 
-                    if(payload instanceof CloudTaskPayload) {//TODO add another check for hop count
-                        addPayloadToCloudProcessors(task, payload);
-                    } else if(cloudManager.shouldSendDataToAnotherServer(task.getClass(), task.getNumberThreads())) {
+                    if(cloudManager.shouldSendDataToAnotherServer(task.getClass(), task.getNumberThreads())) {
                         sendDataToAnotherServer(task, payload);
                         cloudManager.getTaskLoadManager().decrementServerLoad(task.getClass());
                     } else {
                         task.executeTask(passiveConnection, payload);
                         cloudManager.getTaskLoadManager().decrementServerLoad(task.getClass());
                     }
-
-                    cloudManager.printLoadStatus(task.getClass());//TODO eventually remove this
                 } else {
                     task.executeTask(passiveConnection, payload);
                 }
@@ -60,65 +51,6 @@ public class DataReceiveHelperServer extends DataReceiveHelper {
             passiveConnection.sendData(payloadFromHelperServer);
         } else {
             cloudManager.executePayloadOnAnotherServer(cloudTaskPayload);
-        }
-    }
-
-    private void addPayloadToCloudProcessors(Task task, Payload payload) {
-        if(!payloadQueuesForTasks.containsKey(task)) {
-            payloadQueuesForTasks.put(task, new ConcurrentLinkedQueue<>());
-        }
-
-        if(!cloudTaskProcessorsPerTasks.containsKey(task)) {
-            cloudTaskProcessorsPerTasks.put(task, new ConcurrentHashMap<>());
-
-            for(int i = 0; i < task.getNumberThreads(); i++) {
-                CloudTaskProcessor cloudTaskProcessor = new CloudTaskProcessor(task, payloadQueuesForTasks.get(task));
-                Thread cloudTaskProcessorThread = new Thread(cloudTaskProcessor);
-                cloudTaskProcessorsPerTasks.get(task).put(cloudTaskProcessor, cloudTaskProcessorThread);
-                cloudTaskProcessorThread.start();
-            }
-        }
-
-        payloadQueuesForTasks.get(task).add(payload);
-    }
-
-    public void shutdown() {
-        for(ConcurrentHashMap<CloudTaskProcessor, Thread> cloudTaskProcessors : cloudTaskProcessorsPerTasks.values()) {
-            for(CloudTaskProcessor cloudTaskProcessor : cloudTaskProcessors.keySet()) {
-                cloudTaskProcessor.shutDown();
-            }
-        }
-    }
-
-    class CloudTaskProcessor implements Runnable {
-
-        private boolean continueRunning = true;
-        private Task cloudTaskProcessingType;
-        private ConcurrentLinkedQueue<Payload> payloadsToExecute;
-
-        public CloudTaskProcessor(Task cloudTaskProcessingType, ConcurrentLinkedQueue<Payload> payloadsToExecute) {
-            this.cloudTaskProcessingType = cloudTaskProcessingType;
-            this.payloadsToExecute = payloadsToExecute;
-        }
-
-        public void shutDown() {
-            continueRunning = false;
-        }
-
-        @Override
-        public void run() {
-            while(continueRunning) {
-                if(!payloadsToExecute.isEmpty()) {
-                    Payload payloadToExecute = payloadsToExecute.poll();
-
-                    if(payloadToExecute != null) {
-                        cloudTaskProcessingType.executeTask(passiveConnection, payloadToExecute);
-                        cloudManager.getTaskLoadManager().decrementServerLoad(cloudTaskProcessingType.getClass());
-                    }
-
-                    cloudManager.printLoadStatus(cloudTaskProcessingType.getClass());//TODO eventually remove this
-                }
-            }
         }
     }
 

@@ -77,10 +77,6 @@ public class ConnectionService implements Runnable {
     public void shutdown() {
         this.continueRunning = false;
 
-        for(DataReceiveHelperServer dataReceiveHelper : dataReceiveHelpers.values()) {
-            dataReceiveHelper.shutdown();
-        }
-
         for(Task task : tasks.values()) {
             task.shutDownTaskExecutors();
         }
