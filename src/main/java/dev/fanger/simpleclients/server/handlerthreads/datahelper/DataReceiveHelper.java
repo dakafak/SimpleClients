@@ -18,7 +18,7 @@ public abstract class DataReceiveHelper implements Runnable {
 
     @Override
     public void run() {
-        while(!passiveConnection.connectionShouldBeDestroyed()){
+        while(true){
             Payload newPayload = passiveConnection.retrieveData();
             if(canExecutePayload(newPayload)) {
                 sendPayloadToTaskExecution(newPayload);

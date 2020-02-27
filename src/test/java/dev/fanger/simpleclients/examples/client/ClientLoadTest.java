@@ -3,18 +3,19 @@ package dev.fanger.simpleclients.examples.client;
 import dev.fanger.simpleclients.examples.loadtest.results.ClientTestResults;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class ClientLoadTest {
 
 	private int maxConcurrentConnections = 8;// Tests are run *=2 up to max number of tests to run
 
 	private ClientTestResults clientTestResults;
+	private ConcurrentLinkedQueue<ConcurrentLinkedQueue<ClientRunner>> allClientRunners;
+	private ConcurrentLinkedQueue<ConcurrentLinkedQueue<Thread>> allThreadsForClientRunners;
 
 	public ClientLoadTest() {
 		clientTestResults = new ClientTestResults();
+		allClientRunners = new ConcurrentLinkedQueue<>();
+		allThreadsForClientRunners = new ConcurrentLinkedQueue<>();
 
 		for(int i = 1; i <= maxConcurrentConnections; i *= 2) {
 			runTests(i);
@@ -24,22 +25,16 @@ public class ClientLoadTest {
 	}
 
 	private void runTests(int numberOfConnectionsToTest) {
-		ConcurrentLinkedQueue<ClientRunner> clientRunners;
-		ConcurrentLinkedQueue<ClientRunner> completedClientRunners;
-		ExecutorService executorService;
+		ConcurrentLinkedQueue<ClientRunner> clientRunners = new ConcurrentLinkedQueue<>();
+		allClientRunners.add(clientRunners);
+		ConcurrentLinkedQueue<Thread> clientRunnerThreads = new ConcurrentLinkedQueue<>();
+		allThreadsForClientRunners.add(clientRunnerThreads);
 
-		clientRunners = new ConcurrentLinkedQueue<>();
-		completedClientRunners = new ConcurrentLinkedQueue<>();
-		executorService = Executors.newFixedThreadPool(numberOfConnectionsToTest);
+		addClientsAndRunTest(numberOfConnectionsToTest, clientRunners, clientRunnerThreads);
 
-		addClientsAndRunTest(numberOfConnectionsToTest, clientRunners, completedClientRunners, executorService);
-
-		executorService.shutdown();
-
-		while(!clientRunners.isEmpty()) {
-			System.out.println(clientRunners.size() + " clients left...");
+		for(Thread thread : clientRunnerThreads) {
 			try {
-				executorService.awaitTermination(1, TimeUnit.SECONDS);
+				thread.join();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -50,19 +45,21 @@ public class ClientLoadTest {
 
 	private void addClientsAndRunTest(int numberOfConnectionsToTest,
 									  ConcurrentLinkedQueue<ClientRunner> clientRunners,
-									  ConcurrentLinkedQueue<ClientRunner> completedClientRunners,
-									  ExecutorService executorService) {
+									  ConcurrentLinkedQueue<Thread> clientRunnerThreads) {
 		for(int i = 0; i < numberOfConnectionsToTest; i++) {
 			ClientRunner clientRunner = new ClientRunner(i,
-					clientRunners,
-					completedClientRunners,
 					clientTestResults,
 					numberOfConnectionsToTest);
 			clientRunners.add(clientRunner);
 		}
 
 		for(ClientRunner clientRunner : clientRunners) {
-			executorService.execute(clientRunner);
+			Thread newClientRunnerThread = new Thread(clientRunner);
+			clientRunnerThreads.add(newClientRunnerThread);
+		}
+
+		for(Thread thread : clientRunnerThreads) {
+			thread.start();
 		}
 	}
 

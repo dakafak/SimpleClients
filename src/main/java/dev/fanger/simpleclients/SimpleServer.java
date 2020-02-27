@@ -19,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SimpleServer extends TaskedService {
 
     private ConnectionService connectionService;
+    private Thread connectionServiceThread;
 
     private ConcurrentHashMap<UUID, Connection> clients;
     private ConcurrentHashMap<UUID, DataReceiveHelperServer> dataReceiveHelpers;
@@ -47,8 +48,8 @@ public class SimpleServer extends TaskedService {
      */
     public void startListeningForConnections(){
         connectionService = new ConnectionService(port, clients, dataReceiveHelpers, getTasks(), cloudManager);
-        Thread connectionThread = new Thread(connectionService);
-        connectionThread.start();
+        connectionServiceThread = new Thread(connectionService);
+        connectionServiceThread.start();
     }
 
     /**
@@ -56,6 +57,7 @@ public class SimpleServer extends TaskedService {
      */
     public void shutDownServer(){
         cloudManager.shutDown();
+        connectionServiceThread.interrupt();
         connectionService.shutdown();
     }
 

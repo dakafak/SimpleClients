@@ -58,15 +58,7 @@ public abstract class Task {
     public void shutDownTaskExecutors() {
         if(taskExecutorThreads != null) {
             for (Thread thread : taskExecutorThreads) {
-                try {
-                    thread.join();
-                } catch (InterruptedException e) {}
-            }
-        }
-
-        if(taskExecutors != null) {
-            for (TaskExecutor taskExecutor : taskExecutors) {
-                taskExecutor.stop();
+                thread.interrupt();
             }
         }
     }

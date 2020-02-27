@@ -8,7 +8,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class TaskExecutor implements Runnable {
 
     private ArrayBlockingQueue<TaskExecutionRequest> taskExecutionRequests;
-    private boolean keepRunning = true;
 
     public TaskExecutor(ArrayBlockingQueue<TaskExecutionRequest> taskExecutionRequests) {
         this.taskExecutionRequests = taskExecutionRequests;
@@ -18,7 +17,7 @@ public class TaskExecutor implements Runnable {
     public void run() {
         int lastQueueSize = 0;
 
-        while(keepRunning) {
+        while(true) {
             TaskExecutionRequest currentExecutionRequest = taskExecutionRequests.poll();
 
             if(currentExecutionRequest != null) {
@@ -38,10 +37,6 @@ public class TaskExecutor implements Runnable {
                         currentExecutionRequest.getPayload());
             }
         }
-    }
-
-    public void stop() {
-        this.keepRunning = false;
     }
 
 }

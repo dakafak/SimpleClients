@@ -119,13 +119,7 @@ public class CloudManager {
     }
 
     public void shutDown() {
-        cloudConnectionManager.stop();
-
-        try {
-            cloudStatusThread.join();
-        } catch (InterruptedException e) {
-            Logger.log(Level.ERROR, e);
-        }
+        cloudStatusThread.interrupt();
     }
 
     public String getLoadStatusString(Class taskClass) {
@@ -146,11 +140,10 @@ public class CloudManager {
 
         private int threadSleepTime = 1_000;
         private int maxThreadSleepTime = 60_000;
-        private boolean continueRunning = true;
 
         @Override
         public void run() {
-            while(continueRunning) {
+            while(true) {
                 checkAllCloudConnections();
 
                 if(threadSleepTime < maxThreadSleepTime) {
@@ -164,7 +157,7 @@ public class CloudManager {
                 try {
                     Thread.sleep(threadSleepTime);
                 } catch (InterruptedException e) {
-                    Logger.log(Level.ERROR, e);
+                    break;
                 }
             }
         }
@@ -206,14 +199,6 @@ public class CloudManager {
             }
 
             return true;
-        }
-
-        public boolean isRunning() {
-            return continueRunning;
-        }
-
-        public void stop() {
-            this.continueRunning = false;
         }
     }
 

@@ -11,13 +11,13 @@ import dev.fanger.simpleclients.server.handlerthreads.datahelper.DataReceiveHelp
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionService implements Runnable {
 
     private int port;
-    private boolean continueRunning = true;
 
     private ServerSocket serverSocket;
 
@@ -43,7 +43,7 @@ public class ConnectionService implements Runnable {
         try {
             serverSocket = new ServerSocket(port);
 
-            while(continueRunning){
+            while(true){
                 Socket newClientSocket = serverSocket.accept();
 
                 // Setup new connection with newly accepted client
@@ -64,6 +64,8 @@ public class ConnectionService implements Runnable {
                 // Log status of total clients so far
                 Logger.log(Level.DEBUG, "Current client list size: " + clients.keySet().size());
             }
+        } catch (SocketException e) {
+            // Socket exception will be thrown when shutting down the server
         } catch (IOException e) {
             Logger.log(Level.ERROR, e);
         }
@@ -75,8 +77,6 @@ public class ConnectionService implements Runnable {
      * Shuts down the server connection service
      */
     public void shutdown() {
-        this.continueRunning = false;
-
         for(Task task : tasks.values()) {
             task.shutDownTaskExecutors();
         }

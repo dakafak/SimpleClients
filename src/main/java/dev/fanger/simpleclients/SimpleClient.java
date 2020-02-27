@@ -42,12 +42,7 @@ public class SimpleClient extends TaskedService {
      */
     public void shutDownClient() {
         connection.shutDownConnection();
-
-        try {
-            dataReceiveHelperThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        dataReceiveHelperThread.interrupt();
     }
 
     /**
