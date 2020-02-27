@@ -15,7 +15,14 @@ import java.util.List;
 
 public class CloudLoadTest {
 
-    @Test
+    public static void main(String[] args) {
+        try {
+            (new CloudLoadTest()).testLoadTaskProcessing();
+        } catch (DuplicateTaskException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void testLoadTaskProcessing() throws DuplicateTaskException {
         SimpleServer primaryServer = new SimpleServer.Builder(10000)
                 .withLoggingType(SystemPrintTimeLogger.class)
@@ -66,9 +73,9 @@ public class CloudLoadTest {
         }
 
         // Shut down clients
-//        for(TraditionalClient traditionalClient : allClients) {
-//            traditionalClient.shutDownClient();
-//        }
+        for(TraditionalClient traditionalClient : allClients) {
+            traditionalClient.shutDownClient();
+        }
 
         System.out.println("Done");
     }
