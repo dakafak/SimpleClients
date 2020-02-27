@@ -12,8 +12,7 @@ public class SimpleClientExample {
     private boolean[] completedBounceTest;
 
     public SimpleClientExample() {
-        completedBounceTest = new boolean[1];
-        completedBounceTest[0] = false;
+        completedBounceTest = new boolean[]{false};
 
         try {
             simpleClient = new SimpleClient.Builder("127.0.0.1", 1776)
