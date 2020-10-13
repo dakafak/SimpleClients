@@ -38,7 +38,6 @@ jobs:
           files: |
             target/SimpleClients.jar
             target/SimpleClients.jar.sha256
-          body_path: RELEASE.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
