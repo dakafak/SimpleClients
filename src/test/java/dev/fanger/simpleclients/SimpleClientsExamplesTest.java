@@ -5,11 +5,13 @@ import dev.fanger.simpleclients.examples.SimpleServerExample;
 import dev.fanger.simpleclients.examples.TraditionClientExample;
 import dev.fanger.simpleclients.server.data.payload.Payload;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+@Ignore
 public class SimpleClientsExamplesTest {
 
     private SimpleServer simpleServer;
