@@ -39,8 +39,8 @@
   <distributionManagement>
     <repository>
       <id>github</id>
-      <name>GitHub dakafak Apache Maven Packages</name>
-      <url>https://maven.pkg.github.com/dakafak/simpleclients</url>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/dakafak/SimpleClients</url>
     </repository>
   </distributionManagement>
 
